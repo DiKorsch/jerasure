@@ -12,4 +12,4 @@ local.properties
 .classpath
 .settings/
 .loadpath
-.class
+*.class
