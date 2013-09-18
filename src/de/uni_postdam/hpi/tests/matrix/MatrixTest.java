@@ -59,4 +59,37 @@ public class MatrixTest {
 		}
 	}
 	
+	@Test
+	public void test_range_setter(){
+		Matrix mBig = new Matrix(3,3);
+		Matrix mSmall = new Matrix(2,2, new int[]{1,1,1,1}); 
+		
+		for(int i = 1; i < 3; i++){
+			for(int j = 1; j < 3; j++){
+				assertTrue(1 != mBig.get(i, j));
+			}
+		}
+		
+		mBig.rangeSet(1,1, mSmall);
+		
+		for(int i = 1; i < 3; i++){
+			for(int j = 1; j < 3; j++){
+				assertEquals(1, mBig.get(i, j));
+			}
+		}
+	}
+	
+	public void test_range_getter(){
+		Matrix mBig = new Matrix(3,3, new int[]{
+				2,2,2,
+				2,3,4,
+				2,5,6});
+		Matrix mSmall = new Matrix(2,2, new int[]{
+				3,4,
+				5,6}); 
+		
+		assertEquals(mSmall, mBig.rangeGet(1, 1, 2, 2));
+	}
+	
+	
 }

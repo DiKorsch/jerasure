@@ -79,13 +79,40 @@ public class Matrix{
 		this.content[col][row] = value;
 	}
 	
-	public void print(PrintStream stream){
-		for(int row = 0; row < rows; row++){
-			for(int col = 0; col < cols; col++){
-				stream.print(String.format("%d\t", this.get(col, row)));
-			}
-			stream.println();
+	public void rangeSet(int beginCol, int beginRow, Matrix other) {
+		if(beginCol + other.cols > this.cols || beginRow + other.rows > this.rows){
+			throw new IllegalArgumentException("Destination matrix is too small!");
 		}
+
+		int col = beginCol;
+		for(int otherCol = 0; otherCol < other.cols; otherCol++){
+			int row = beginRow;
+			for(int otherRow = 0; otherRow < other.rows; otherRow++){
+				this.set(col, row, other.get(otherCol, otherRow));
+				row++;
+			}
+			col++;
+		}
+	}
+	
+
+	public Matrix rangeGet(int beginCol, int beginRow, int cols, int rows) {
+		if(beginCol + cols > this.cols || beginRow + rows > this.rows){
+			throw new IllegalArgumentException("Source matrix is too small!");
+		}
+		
+		Matrix result = new Matrix(cols, rows);
+		for(int col = 0; col < cols; col++){
+			for(int row = 0; row < rows; row++){
+				result.set(col, row, this.get(col + beginCol, row + beginRow));
+			}
+		}
+		return result;
+	}
+	
+	
+	public void print(PrintStream stream){
+		stream.print(this.toString());
 	}
 	
 	
@@ -126,5 +153,23 @@ public class Matrix{
 		}
 		return true;
 	}
+	
+	
+	@Override
+	public String toString() {
+		String result = "";
+		for(int row = 0; row < rows; row++){
+			for(int col = 0; col < cols; col++){
+				result += String.format("%d\t", this.get(col, row));
+			}
+			result += "\n";
+		}
+		return result;
+	}
+
+
+
+
+	
 	
 }
