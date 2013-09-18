@@ -1,20 +1,11 @@
 package de.uni_postdam.hpi.main;
 
-import de.uni_postdam.hpi.Settings;
 import de.uni_postdam.hpi.util.Matrix;
+import de.uni_postdam.hpi.cauchy.CauchyBest;
 import de.uni_postdam.hpi.galois.Galois;
 
 public class Cauchy {
 
-	static Integer[] best_07 = { 1, 2, 68, 4, 34, 8, 17, 16, 76, 32, 38, 3, 64,
-			69, 5, 19, 35, 70, 6, 9, 18, 102, 10, 36, 85, 12, 21, 42, 51, 72,
-			77, 84, 20, 25, 33, 50, 78, 98, 24, 39, 49, 100, 110, 48, 65, 93,
-			40, 66, 71, 92, 7, 46, 55, 87, 96, 103, 106, 11, 23, 37, 54, 81,
-			86, 108, 13, 22, 27, 43, 53, 73, 80, 14, 26, 52, 74, 79, 99, 119,
-			44, 95, 101, 104, 111, 118, 29, 59, 89, 94, 117, 28, 41, 58, 67,
-			88, 115, 116, 47, 57, 83, 97, 107, 114, 127, 56, 82, 109, 113, 126,
-			112, 125, 15, 63, 75, 123, 124, 31, 45, 62, 91, 105, 122, 30, 61,
-			90, 121, 60, 120 };
 
 	private static int[] PPs = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -23,7 +14,7 @@ public class Cauchy {
 	private static int[][] ONEs = new int[33][33];
 	private static int[] NOs = new int[33];
 
-	static Matrix good_general_coding_matrix(int k, int m, int w) {
+	public static Matrix good_general_coding_matrix(int k, int m, int w) {
 		int maxElements = 1 << w;
 		if (k + m > maxElements) {
 			throw new IllegalArgumentException(
@@ -35,7 +26,7 @@ public class Cauchy {
 		if (m == 2) {
 			for (int i = 0; i < k; i++) {
 				matrix.setWithIdx(i, 1);
-				matrix.setWithIdx(i + k, Cauchy.best_07[i]);
+				matrix.setWithIdx(i + k, CauchyBest.get(w)[i]);
 			}
 		} else {
 			matrix = original_coding_matrix(k, m, w);
@@ -106,51 +97,45 @@ public class Cauchy {
 		return matrix;
 	}
 
-	private static int n_ones(int n, int w) {
-
-		int no;
-		int cno;
-		int nones;
-		int i, j;
-		int highbit;
-
-		highbit = (1 << (Settings.w - 1));
-
-		if (PPs[Settings.w] == -1) {
-			nones = 0;
-			PPs[Settings.w] = Galois.multiply(highbit, 2, w);
-			for (i = 0; i < Settings.w; i++) {
-				if (PPs[Settings.w] != 0 & (1 << i) != 0) {
-					ONEs[Settings.w][nones] = (1 << i);
-					nones++;
-				}
-			}
-			NOs[Settings.w] = nones;
-		}
-
-		no = 0;
-		for (i = 0; i < Settings.w; i++)
-			if ((n & (1 << i)) != 0)
-				no++;
-		cno = no;
-		for (i = 1; i < Settings.w; i++) {
-			if ((n & highbit) != 0) {
-				n ^= highbit;
-				n <<= 1;
-				n ^= PPs[Settings.w];
+	public static int n_ones(int number, int w) {
+		initPPs(w);
+		int oneCount = Integer.bitCount(number & ((1 << w) - 1));
+		int cno = oneCount;
+		int highbit = (1 << (w - 1));
+		
+		for (int i = 1; i < w; i++) {
+			if ((number & highbit) != 0) {
+				number ^= highbit;
+				number <<= 1;
+				number ^= PPs[w];
 				cno--;
-				for (j = 0; j < NOs[Settings.w]; j++) {
-					cno += ((n & ONEs[Settings.w][j]) != 0) ? 1 : -1;
+				for (int j = 0; j < NOs[w]; j++) {
+					cno += ((number & ONEs[w][j]) != 0) ? 1 : -1;
 				}
 			} else {
-				n <<= 1;
+				number <<= 1;
 			}
-			no += cno;
+			oneCount += cno;
 		}
-		return no;
+		return oneCount;
 	}
 
-	static void printMatrix(Matrix matrix, int k, int m) {
+	private static void initPPs(int w) {
+		if (PPs[w] != -1) 
+			return;
+		int highbit = (1 << (w - 1));
+		int nones = 0;
+		PPs[w] = Galois.multiply(highbit, 2, w);
+		for (int i = 0; i < w; i++) {
+			if ((PPs[w] & (1 << i)) != 0) {
+				ONEs[w][nones] = (1 << i);
+				nones++;
+			}
+		}
+		NOs[w] = nones;
+	}
+
+	public static void printMatrix(Matrix matrix, int k, int m) {
 		if (matrix.size() != k * m) {
 			System.err.println("Die Matrix hat die falsche Größe!");
 			return;
@@ -161,18 +146,6 @@ public class Cauchy {
 						matrix.get(col, row)));
 			}
 			System.out.println();
-		}
-	}
-
-	public static void main(String[] args) {
-
-		int k = 5;
-		int m = 3;
-		Matrix matrix = Cauchy.good_general_coding_matrix(k, m, Settings.w);
-		if (matrix == null) {
-			System.err.println("Matrix was null!");
-		} else {
-			matrix.print(System.out);
 		}
 	}
 

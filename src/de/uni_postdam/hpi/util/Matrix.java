@@ -2,6 +2,7 @@ package de.uni_postdam.hpi.util;
 
 import java.io.PrintStream;
 
+
 public class Matrix{
 
 	private int cols;
@@ -15,7 +16,6 @@ public class Matrix{
 		return -1; 
 	}
 	
-
 	
 	public Matrix(int cols, int rows) {
 		this.cols = cols;
@@ -105,5 +105,26 @@ public class Matrix{
 		return idx / cols();
 	}
 	
+	
+	@Override
+	public boolean equals(Object obj) {
+		Matrix other = null;
+		if (obj instanceof Matrix) {
+			other = (Matrix) obj;
+		}else {
+			return false;
+		}
+		if(other.cols() != this.cols() || other.rows() != this.rows()){
+			return false;
+		}
+		for(int col = 0; col < this.cols; col++){
+			for(int row = 0; row < this.rows; row++){
+				if(this.get(col, row) != other.get(col, row)){
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	
 }
