@@ -73,9 +73,6 @@ public class Matrix{
 	
 	public void set(int col, int row, int value){
 		if(this.isEmpty) this.isEmpty = false;
-//		if(value == 0){
-//			System.out.println("value was 0!");
-//		}
 		this.content[col][row] = value;
 	}
 	
