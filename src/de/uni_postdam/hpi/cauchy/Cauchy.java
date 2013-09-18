@@ -1,8 +1,7 @@
-package de.uni_postdam.hpi.main;
+package de.uni_postdam.hpi.cauchy;
 
-import de.uni_postdam.hpi.util.Matrix;
-import de.uni_postdam.hpi.cauchy.CauchyBest;
 import de.uni_postdam.hpi.galois.Galois;
+import de.uni_postdam.hpi.matrix.Matrix;
 
 public class Cauchy {
 

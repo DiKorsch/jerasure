@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import de.uni_postdam.hpi.main.Cauchy;
-import de.uni_postdam.hpi.util.Matrix;
+import de.uni_postdam.hpi.cauchy.Cauchy;
+import de.uni_postdam.hpi.matrix.Matrix;
 
 public class CauchyTest {
 

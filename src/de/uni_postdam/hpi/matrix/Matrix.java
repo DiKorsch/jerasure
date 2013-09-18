@@ -1,4 +1,4 @@
-package de.uni_postdam.hpi.util;
+package de.uni_postdam.hpi.matrix;
 
 import java.io.PrintStream;
 

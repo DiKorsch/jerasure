@@ -1,12 +1,12 @@
-package de.uni_postdam.hpi.tests.utils;
+package de.uni_postdam.hpi.tests.matrix;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import de.uni_postdam.hpi.util.BitMatrix;
-import de.uni_postdam.hpi.util.Matrix;
+import de.uni_postdam.hpi.matrix.BitMatrix;
+import de.uni_postdam.hpi.matrix.Matrix;
 
 public class BitMatrixTest {
 

@@ -1,4 +1,4 @@
-package de.uni_postdam.hpi.util;
+package de.uni_postdam.hpi.matrix;
 
 import de.uni_postdam.hpi.galois.Galois;
 
