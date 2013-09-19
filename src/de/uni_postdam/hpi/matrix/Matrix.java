@@ -37,7 +37,9 @@ public class Matrix{
 	
 	public void setContent(int[] content){
 		if(cols*rows != content.length){
-			return;
+			throw new IllegalArgumentException(
+					String.format("content does not math the dimensions: cols=%d, rows=%d and content length: %d!",
+							cols, rows, content.length));
 		}
 		this.isEmpty = false;
 		for(int col = 0; col < cols; col++){
@@ -157,13 +159,16 @@ public class Matrix{
 		String result = "";
 		for(int row = 0; row < rows; row++){
 			for(int col = 0; col < cols; col++){
-				result += String.format("%d\t", this.get(col, row));
+				result += String.format("%d%s", this.get(col, row), this.delimiter());
 			}
 			result += "\n";
 		}
 		return result;
 	}
 
+	protected String delimiter(){
+		return "\t";
+	}
 
 
 
