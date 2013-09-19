@@ -7,6 +7,7 @@ import org.junit.Test;
 import de.uni_postdam.hpi.matrix.BitMatrix;
 import de.uni_postdam.hpi.matrix.Matrix;
 import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.matrix.Schedule.OPERATION;
 
 public class BitMatrixTest {
 
@@ -143,11 +144,11 @@ public class BitMatrixTest {
 		});
 		Schedule[] schedules = bitMatrix.toSchedules(k, w);
 		Schedule[] should = {
-				new Schedule(false, 0, 0, 3, 0), new Schedule(true,  1, 1, 3, 0), new Schedule(true,  2, 2, 3, 0),
-				new Schedule(false, 0, 1, 3, 1), new Schedule(true,  1, 2, 3, 1), new Schedule(true,  2, 3, 3, 1),
-				new Schedule(false, 0, 2, 3, 2), new Schedule(true,  1, 2, 3, 2), new Schedule(true,  1, 3, 3, 2), new Schedule(true,  2, 4, 3, 2),
-				new Schedule(false, 0, 3, 3, 3), new Schedule(true,  1, 4, 3, 3), new Schedule(true,  2, 0, 3, 3),
-				new Schedule(false, 0, 4, 3, 4), new Schedule(true,  1, 0, 3, 4), new Schedule(true,  2, 0, 3, 4), new Schedule(true,  2, 1, 3, 4),
+				new Schedule(OPERATION.COPY, 0, 0, 3, 0), new Schedule(OPERATION.XOR,  1, 1, 3, 0), new Schedule(OPERATION.XOR,  2, 2, 3, 0),
+				new Schedule(OPERATION.COPY, 0, 1, 3, 1), new Schedule(OPERATION.XOR,  1, 2, 3, 1), new Schedule(OPERATION.XOR,  2, 3, 3, 1),
+				new Schedule(OPERATION.COPY, 0, 2, 3, 2), new Schedule(OPERATION.XOR,  1, 2, 3, 2), new Schedule(OPERATION.XOR,  1, 3, 3, 2), new Schedule(OPERATION.XOR,  2, 4, 3, 2),
+				new Schedule(OPERATION.COPY, 0, 3, 3, 3), new Schedule(OPERATION.XOR,  1, 4, 3, 3), new Schedule(OPERATION.XOR,  2, 0, 3, 3),
+				new Schedule(OPERATION.COPY, 0, 4, 3, 4), new Schedule(OPERATION.XOR,  1, 0, 3, 4), new Schedule(OPERATION.XOR,  2, 0, 3, 4), new Schedule(OPERATION.XOR,  2, 1, 3, 4),
 		}; 
 		
 		assertArrayEquals(should, schedules);
