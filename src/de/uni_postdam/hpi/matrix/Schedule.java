@@ -1,5 +1,7 @@
 package de.uni_postdam.hpi.matrix;
 
+import de.uni_postdam.hpi.cauchy.Cauchy;
+
 public class Schedule {
 	
 	public enum OPERATION{
@@ -84,7 +86,12 @@ public class Schedule {
 		return this.destinationId * packetSize * w + this.destinationBit * packetSize;
 	}
 	
+	public static Schedule[] generate(int k, int m, int w){
+		BitMatrix matrix = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
+		return matrix.toSchedules(k, w);
+	}
 }
+
 
 
 
