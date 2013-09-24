@@ -14,7 +14,7 @@ import org.junit.Test;
 import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.utils.CalcUtils;
 
-public class JErasureTest {
+public class EncoderTest {
 
 	File[] k_files = null;
 	File[] m_files = null;
@@ -308,7 +308,6 @@ public class JErasureTest {
 	}
 	
 	
-	
 	private boolean checkFileContent(File f, byte[] should) throws IOException {
 		
 		FileInputStream fis = new FileInputStream(f);
@@ -322,20 +321,7 @@ public class JErasureTest {
 		return true;
 	}
 
-	private void deleteFiles(File[] files) {
-		if(files == null){
-			System.err.println("Files was null!");
-			return;
-		}
-		for(File f: files){
-			if(f != null && !f.delete()){
-				System.err.println("Could not delete: " + f.getAbsolutePath());
-			}else if(f == null){
-				System.err.println("File was null!");
-			}
-		}
-		
-	}
+	
 
 	
 	private File createFile(String fileName, String extension, byte[] content) throws IOException{

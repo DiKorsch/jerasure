@@ -54,7 +54,7 @@ public class Encoder {
 	}
 
 	public void encode(File file) {
-		System.out.println("Encoding " + file.getAbsolutePath());
+//		System.out.println("Encoding " + file.getAbsolutePath());
 		if (!file.exists()) {
 			System.err.println("File " + file.getAbsolutePath()
 					+ " does not exist!");

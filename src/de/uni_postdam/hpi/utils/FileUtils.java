@@ -3,9 +3,17 @@ package de.uni_postdam.hpi.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Random;
 
 
 public class FileUtils {
+
+	public static final long BYTE = 1;
+	public static final long KB = 1024 * BYTE;
+	public static final long MB = 1024 * KB;
+	public static final long GB = 1024 * MB;
+	
 	
 	public static String generatePartPath(String filePath, String partPrefix, int num){
 		File f = new File(filePath);
@@ -31,6 +39,21 @@ public class FileUtils {
 			result[i-1] = new File(newFilePath);
 		}
 		return result;
+	}
+	
+	public static void deleteFiles(File[] files) {
+		if(files == null){
+			System.err.println("Files was null!");
+			return;
+		}
+		for(File f: files){
+			if(f != null && !f.delete()){
+				System.err.println("Could not delete: " + f.getAbsolutePath());
+			}else if(f == null){
+				System.err.println("File was null!");
+			}
+		}
+		
 	}
 	
 	public static String[] getNameAndExtension(String fileName){
@@ -82,6 +105,7 @@ public class FileUtils {
 		destenation.write(dataAndCoding, start, w * packetSize);
 	}
 
+	
 	public static FileOutputStream[] createParts(String filePath,
 			String suffix, int numParts) {
 		FileOutputStream[] result = new FileOutputStream[numParts];
@@ -120,5 +144,58 @@ public class FileUtils {
 				System.err.println("output stream was null!");
 			}
 		}
+	}
+
+	public static boolean createRandomContentFile(File f, long size){
+		return createRandomContentFile(f.getAbsolutePath(), size);
+	}
+	
+	public static boolean createRandomContentFile(String filePath, long fileSize){
+		RandomAccessFile f = null;
+		File file = new File(filePath);
+		
+		int cacheSize = 4 * 1024 * 1024; // 4mb
+		long bytesWritten = 0L;
+		
+		try {
+			f = new RandomAccessFile(file, "rw");
+			f.setLength(fileSize);
+			while (bytesWritten < fileSize) {
+				int bytesToWrite = (int) Math.min(cacheSize, fileSize - bytesWritten);
+				byte[] cache = new byte[bytesToWrite];
+				new Random().nextBytes(cache);
+				f.write(cache);
+				bytesWritten += bytesToWrite;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				f.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return true;
+
+	}
+
+	
+	public static void cleanDir(File dir, boolean recursive){
+		if(!dir.isDirectory()) return;
+		
+		for(File f: dir.listFiles()){
+			if(f.isFile())
+				f.delete();
+			if(f.isDirectory() && recursive)
+				cleanDir(f, recursive);
+		}
+		
+	}
+	
+	public static void cleanDir(File dir){
+		cleanDir(dir, false);
 	}
 }
