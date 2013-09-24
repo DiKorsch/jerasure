@@ -11,7 +11,8 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 
-import de.uni_postdam.hpi.jerasure.JErasure;
+import de.uni_postdam.hpi.jerasure.CalcUtils;
+import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.matrix.Schedule;
 
 public class JErasureTest {
@@ -56,7 +57,7 @@ public class JErasureTest {
 				// m1
 				0x70, 0x47, 0x39, (byte) 0xb7 };
 		
-		coding = JErasure.encode(k, m, w, schedules, data, packetSize);
+		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
@@ -89,7 +90,7 @@ public class JErasureTest {
 				0x64, (byte) 0x86, 0x1a, 0x5c,
 		};
 
-		coding = JErasure.encode(k, m, w, schedules, data, packetSize);
+		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
@@ -126,7 +127,7 @@ public class JErasureTest {
 				0x11, 0x27, 0x01, (byte) 0xfa
 		};
 
-		coding = JErasure.encode(k, m, w, schedules, data, packetSize);
+		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
@@ -149,7 +150,7 @@ public class JErasureTest {
 				4,4,4,4,
 		};
 
-		coding = JErasure.encode(k, m, w, schedules, data, packetSize);
+		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
 		
 		assertArrayEquals(should, coding);
 	}
@@ -166,7 +167,7 @@ public class JErasureTest {
 					0x22, (byte) 0x97, 0x2e, 0x15, 
 			});
 			
-			JErasure.encode(original, k, m, w);
+			Encoder.encode(original, k, m, w);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -203,7 +204,7 @@ public class JErasureTest {
 			}
 			original = createFile("original", content);
 			
-			JErasure.encode(original, k, m, w);
+			Encoder.encode(original, k, m, w);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -259,7 +260,7 @@ public class JErasureTest {
 			File original = createFile("original", content);
 			assertEquals(original.length(), len);
 			int k = 3, m = 2, w = 7;
-			JErasure.encode(original, k, m, w);
+			Encoder.encode(original, k, m, w);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -269,7 +270,7 @@ public class JErasureTest {
 				part_len += part.length();
 			}
 			
-			assertEquals(part_len, len + JErasure.calcOverHead(original.length(), k, w));
+			assertEquals(part_len, len + CalcUtils.calcOverHead(original.length(), k, w));
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -288,7 +289,7 @@ public class JErasureTest {
 
 			int k = 3, m = 2, w = 7;
 			
-			JErasure.encode(original, k, m, w);
+			Encoder.encode(original, k, m, w);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
