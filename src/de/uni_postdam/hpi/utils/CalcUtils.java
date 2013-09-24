@@ -2,17 +2,17 @@ package de.uni_postdam.hpi.utils;
 
 public class CalcUtils {
 
-	static int calcPacketSize(int k, int w, long filesize) {
+	public static int calcPacketSize(int k, int w, long filesize) {
 		int packetsize = (int) (filesize / (k * w * 256));
 		packetsize = packetsize + 1;
 		return packetsize;
 	}
 
-	static long calcNewSize(long origSize, int k, int m) {
+	public static long calcNewSize(long origSize, int k, int m) {
 		return (origSize + (origSize * m / k));
 	}
 
-	static int calcBufferSize(int k, int w, int packetSize, long size) {
+	public static int calcBufferSize(int k, int w, int packetSize, long size) {
 		int factor = (int) (size / (k * w * packetSize));
 		int calcFactor = factor;
 		int i;
