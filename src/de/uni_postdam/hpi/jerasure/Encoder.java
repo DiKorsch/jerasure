@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.utils.CalcUtils;
 import de.uni_postdam.hpi.utils.FileUtils;
 
 public class Encoder {

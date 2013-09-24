@@ -11,9 +11,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 
-import de.uni_postdam.hpi.jerasure.CalcUtils;
 import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.utils.CalcUtils;
 
 public class JErasureTest {
 

@@ -1,4 +1,4 @@
-package de.uni_postdam.hpi.jerasure;
+package de.uni_postdam.hpi.utils;
 
 public class CalcUtils {
 
