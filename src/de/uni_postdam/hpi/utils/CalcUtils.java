@@ -1,6 +1,10 @@
 package de.uni_postdam.hpi.utils;
 
+import static de.uni_postdam.hpi.utils.FileUtils.*;
+
 public class CalcUtils {
+	
+	static final long maxBufferSize = 50 * MB;
 
 	public static int calcPacketSize(int k, int w, long filesize) {
 		int packetsize = (int) (filesize / (k * w * 256));
@@ -24,9 +28,9 @@ public class CalcUtils {
 			}
 		}
 		if (calcFactor == 0) {
-			return (int) size;
+			return (int) Math.min(size, maxBufferSize);
 		}
-		return calcFactor * blockSize;
+		return (int) Math.min(calcFactor * blockSize, maxBufferSize);
 	}
 	
 	public static int calcBlockSize(int k, int w, int packetSize){
