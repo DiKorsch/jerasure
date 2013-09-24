@@ -3,11 +3,15 @@ package de.uni_postdam.hpi.tests.jerasure;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.io.Files;
 
 import de.uni_postdam.hpi.jerasure.Decoder;
 import de.uni_postdam.hpi.jerasure.Encoder;
@@ -17,7 +21,7 @@ public class DecoderTest {
 
 	static File testDir = new File("decoderTest");
 
-	int k, m, w;
+	int k = 3, m = 1, w = 2;
 
 	File getFile(String fileName) {
 		return new File(testDir.getAbsolutePath() + File.separator + fileName);
@@ -25,7 +29,7 @@ public class DecoderTest {
 	
 	void cleanAndCreateFile(File f){
 		cleanDir(testDir);
-		assertTrue(createRandomContentFile(f, MB));
+		assertTrue(createRandomContentFile(f, 100 * MB));
 	}
 
 	@BeforeClass
@@ -52,16 +56,12 @@ public class DecoderTest {
 		cleanDir(testDir);
 	}
 
-	@Test
+//	@Test
 	public void test_validator() {
-		k = 4;
-		m = 2;
-		w = 7;
-		Decoder dec = null;
 		File f = getFile("someFile");
+		Decoder dec = new Decoder(f, k, m, w);
 
 		// nothing exists yet
-		dec = new Decoder(f, k, m, w);
 		assertFalse(dec.isValid());
 
 		all_parts_exist(f);
@@ -77,9 +77,26 @@ public class DecoderTest {
 		assertFalse(dec.isValid());
 
 	}
+	
+	@Test
+	public void test_decoding_with_all_k_parts() throws NoSuchAlgorithmException, IOException{
+		File f = getFile("someFile");
+		Decoder dec = new Decoder(f, k, m, w);
+		m_parts_missing(f);
+		long size = f.length();
+		String hashShould = getMD5Hash(f);
+		Files.copy(f, getFile("original"));
+		assertTrue(f.delete());
+		assertFalse(f.exists());
+		dec.decode(size);
+		assertTrue(f.exists());
+		
+		assertEquals(size, f.length());
+		
+		assertEquals(hashShould, getMD5Hash(f));
+	}
 
 	// Scenarios
-
 	private void all_parts_exist(File f) {
 		cleanAndCreateFile(f);
 		Encoder enc = new Encoder(k, m, w);

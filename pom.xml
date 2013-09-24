@@ -3,11 +3,11 @@
   <groupId>de.uni-potsdam.hpi.jerasure</groupId>
   <artifactId>JErasure</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <parent>
+  <!--<parent> 
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
-  </parent>
+  </parent> -->
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -35,6 +35,11 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.4</version>
-    </dependency> 
+    </dependency>
+    <dependency>
+    	<groupId>com.google.guava</groupId>
+    	<artifactId>guava</artifactId>
+    	<version>13.0.1</version>
+    </dependency>
   </dependencies>
 </project>

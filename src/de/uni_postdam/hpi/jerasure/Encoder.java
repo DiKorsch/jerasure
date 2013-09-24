@@ -31,8 +31,9 @@ public class Encoder {
 	}
 	
 	public byte[] encode(byte[] data, int packetSize) {
-		if (data.length < k * w * packetSize) {
-			data = Arrays.copyOf(data, k * w * packetSize);
+		int blockSize = CalcUtils.calcBlockSize(k, w, packetSize); 
+		if (data.length < blockSize) {
+			data = Arrays.copyOf(data, blockSize);
 		}
 
 		byte[] dataAndCoding = new byte[(int) CalcUtils.calcNewSize(data.length, k, m)];
@@ -69,7 +70,7 @@ public class Encoder {
 			long size = file.length();
 			int packetSize = CalcUtils.calcPacketSize(k, w, size);
 			int bufferSize = CalcUtils.calcBufferSize(k, w, packetSize, size);
-			int blockSize = k * w * packetSize;
+			int blockSize = CalcUtils.calcBlockSize(k, w, packetSize);
 			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
 			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
 

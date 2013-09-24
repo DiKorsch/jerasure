@@ -13,7 +13,8 @@ public class CalcUtils {
 	}
 
 	public static int calcBufferSize(int k, int w, int packetSize, long size) {
-		int factor = (int) (size / (k * w * packetSize));
+		int blockSize = calcBlockSize(k, w, packetSize);
+		int factor = (int) (size / blockSize);
 		int calcFactor = factor;
 		int i;
 		for (i = factor - 1; i > 1; i--) {
@@ -25,7 +26,11 @@ public class CalcUtils {
 		if (calcFactor == 0) {
 			return (int) size;
 		}
-		return calcFactor * k * w * packetSize;
+		return calcFactor * blockSize;
+	}
+	
+	public static int calcBlockSize(int k, int w, int packetSize){
+		return k * w * packetSize;
 	}
 
 	public static int calcOverHead(long size, int k, int w){
@@ -33,7 +38,7 @@ public class CalcUtils {
 		
 		packetSize = calcPacketSize(k, w, size);
 		bufferSize = calcBufferSize(k, w, packetSize, size);
-		blockSize = k * w * packetSize;
+		blockSize = calcBlockSize(k, w, packetSize);
 		
 		// last bytes, which have to be padded with zeros
 		int rest = (int) ((size % bufferSize) % blockSize);

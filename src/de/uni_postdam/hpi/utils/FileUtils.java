@@ -4,7 +4,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 
 public class FileUtils {
@@ -15,27 +22,33 @@ public class FileUtils {
 	public static final long GB = 1024 * MB;
 	
 	
-	public static String generatePartPath(String filePath, String partPrefix, int num){
+	public static String generatePartPath(String filePath, String partSuffix, int num){
 		File f = new File(filePath);
 		String path = f.getParentFile().getAbsolutePath();
-		String name = generatePartName(f.getName(), partPrefix, num);
+		String name = generatePartName(f.getName(), partSuffix, num);
 		
 		return path + File.separator + name;
 	}
 	
-	public static String generatePartName(String fileName, String partPrefix, int num){
+	public static String generatePartName(String fileName, String partSuffix, int num){
 		String name = getName(fileName);
 		String ext = getExtension(fileName);
-		String format = ext.length() == 0 ? "%s_%s%d%s" : "%s_%s%d.%s";
-		return String.format(format, name, partPrefix, num, ext);
+		String format = ext.length() == 0 ? "%s_%s%02d%s" : "%s_%s%02d.%s";
+		return String.format(format, name, partSuffix, num, ext);
 	}
 	
-	public static File[] collectFiles(String filePath, String partPrefix, int numFiles){
+	public static int extractNum(String fileName, String partSuffix){
+		String name = getName(fileName);
+		int len = name.length();
+		return Integer.parseInt(name.substring(len - 2, len));
+	}
+	
+ 	public static File[] collectFiles(String filePath, String partSuffix, int numFiles){
 		File[] result = new File[numFiles];
 		File f = new File(filePath);
 		String path = f.getParentFile().getAbsolutePath();
 		for(int i = 1; i <= numFiles; i++){
-			String newFilePath = path + File.separator + generatePartName(f.getName(), partPrefix, i);
+			String newFilePath = path + File.separator + generatePartName(f.getName(), partSuffix, i);
 			result[i-1] = new File(newFilePath);
 		}
 		return result;
@@ -198,4 +211,39 @@ public class FileUtils {
 	public static void cleanDir(File dir){
 		cleanDir(dir, false);
 	}
+
+
+	public static String getMD5Hash(File file) throws IOException, NoSuchAlgorithmException {
+
+		HashCode hashCode = Files.hash(file, Hashing.md5());
+		BigInteger bigInt = new BigInteger(1, hashCode.asBytes());
+		String hashString = bigInt.toString(16);
+		// an die Länge von 32bit anpassen
+		while (hashString.length() < 32) {
+			hashString = "0" + hashString;
+		}
+
+		return hashString;
+	}
+
+	public static String getHash(File file, HashFunction hashFunc) throws IOException {
+
+		byte[] hash;
+		try {
+			hash = Files.hash(file, hashFunc).asBytes();
+		} catch (IOException e) {
+
+			return "";
+		}
+		int hashLength = hashFunc.bits() / 4;
+		BigInteger bigInt = new BigInteger(1, hash);
+		String hashString = bigInt.toString(16);
+		while (hashString.length() < hashLength) {
+			// führende Nullen vorne hinzufügen
+			hashString = "0" + hashString;
+		}
+		return hashString;
+	}
+
+
 }
