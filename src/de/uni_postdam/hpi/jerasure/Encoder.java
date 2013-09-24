@@ -7,14 +7,30 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.cauchy.Cauchy;
+import de.uni_postdam.hpi.matrix.*;
 import de.uni_postdam.hpi.utils.CalcUtils;
 import de.uni_postdam.hpi.utils.FileUtils;
 
 public class Encoder {
+
+	int k, m, w;
 	
-	public static byte[] encode(int k, int m, int w, Schedule[] schedules,
-			byte[] data, int packetSize) {
+	Matrix matrix = null;
+	BitMatrix bitMatrix = null;
+	Schedule[] schedules = null;
+	
+	public Encoder(int k, int m, int w) {
+		this.k = k;
+		this.m = m;
+		this.w = w;
+		
+		this.matrix = Cauchy.good_general_coding_matrix(k, m, w);
+		this.bitMatrix = new BitMatrix(matrix, w);
+		this.schedules = bitMatrix.toSchedules(k, w);
+	}
+	
+	public byte[] encode(byte[] data, int packetSize) {
 		if (data.length < k * w * packetSize) {
 			data = Arrays.copyOf(data, k * w * packetSize);
 		}
@@ -37,7 +53,7 @@ public class Encoder {
 		return dataAndCoding;
 	}
 
-	public static void encode(File file, int k, int m, int w) {
+	public void encode(File file) {
 		System.out.println("Encoding " + file.getAbsolutePath());
 		if (!file.exists()) {
 			System.err.println("File " + file.getAbsolutePath()
@@ -90,7 +106,7 @@ public class Encoder {
 
 	}
 
-	private static void performLastReadEncoding(byte[] buffer, int blockSize,
+	private void performLastReadEncoding(byte[] buffer, int blockSize,
 			int packetSize, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts, int w, Schedule[] schedules)
 			throws IOException {
@@ -99,12 +115,12 @@ public class Encoder {
 				w, schedules);
 		int start = buffer.length / blockSize;
 		int length = buffer.length % blockSize;
-		encodeAndWrite(Arrays.copyOfRange(buffer, start, length), schedules,
-				packetSize, w, k_parts, m_parts);
+		encodeAndWrite(Arrays.copyOfRange(buffer, start, length),
+				packetSize, k_parts, m_parts);
 
 	}
 
-	private static void performNormalEncoding(byte[] buffer, int blockSize,
+	private void performNormalEncoding(byte[] buffer, int blockSize,
 			int packetSize, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts, int w, Schedule[] schedules)
 			throws IOException {
@@ -113,17 +129,15 @@ public class Encoder {
 			int start = i * blockSize;
 			encodeAndWrite(
 					Arrays.copyOfRange(buffer, start, start + blockSize),
-					schedules, packetSize, w, k_parts, m_parts);
+					packetSize, k_parts, m_parts);
 		}
 
 	}
 
-	private static void encodeAndWrite(byte[] data, Schedule[] schedules,
-			int packetSize, int w, FileOutputStream[] k_parts,
+	private void encodeAndWrite(byte[] data,
+			int packetSize, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts) throws IOException {
-		int k = k_parts.length, m = m_parts.length;
-		byte[] dataAndCoding = Encoder.encode(k, m, w, schedules, data,
-				packetSize);
+		byte[] dataAndCoding = encode(data, packetSize);
 		FileUtils.writeParts(dataAndCoding, k_parts, m_parts, w, packetSize);
 	}
 

@@ -12,7 +12,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import de.uni_postdam.hpi.jerasure.Encoder;
-import de.uni_postdam.hpi.matrix.Schedule;
 import de.uni_postdam.hpi.utils.CalcUtils;
 
 public class JErasureTest {
@@ -36,10 +35,8 @@ public class JErasureTest {
 		byte[] data = null;
 		byte[] should = null;
 		byte[] coding = null;
-		Schedule[] schedules = null;
 
 		k = 3; m = 1; w = 2; packetSize = 2;
-		schedules = Schedule.generate(k, m, w);
 		data = new byte[]{
 				// k1
 				0x00, 0x26, 0x1e, 0x27, 
@@ -57,13 +54,13 @@ public class JErasureTest {
 				// m1
 				0x70, 0x47, 0x39, (byte) 0xb7 };
 		
-		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
+		
+		coding = new Encoder(k, m, w).encode(data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
 		
 		k = 3; m = 1; w = 4; packetSize = 2;
-		schedules = Schedule.generate(k, m, w);
 		data = new byte[]{
 				// k1
 				0x00, 0x26, 0x1e, 0x27,
@@ -90,13 +87,12 @@ public class JErasureTest {
 				0x64, (byte) 0x86, 0x1a, 0x5c,
 		};
 
-		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
+		coding = new Encoder(k, m, w).encode(data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
 
 		k = 3; m = 2; w = 4; packetSize = 2;
-		schedules = Schedule.generate(k, m, w);
 		data = new byte[]{
 				// k1
 				0x00, 0x26, 0x1e, 0x27,
@@ -127,13 +123,12 @@ public class JErasureTest {
 				0x11, 0x27, 0x01, (byte) 0xfa
 		};
 
-		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
+		coding = new Encoder(k,m,w).encode(data, packetSize);
 		
 		assertArrayEquals(should, coding);
 		
 		
 		k = 2; m = 1; w = 4; packetSize = 1;
-		schedules = Schedule.generate(k, m, w);
 		data = new byte[]{
 				// k1
 				0,1,2,3,
@@ -150,7 +145,7 @@ public class JErasureTest {
 				4,4,4,4,
 		};
 
-		coding = Encoder.encode(k, m, w, schedules, data, packetSize);
+		coding = new Encoder(k, m, w).encode(data, packetSize);
 		
 		assertArrayEquals(should, coding);
 	}
@@ -167,7 +162,7 @@ public class JErasureTest {
 					0x22, (byte) 0x97, 0x2e, 0x15, 
 			});
 			
-			Encoder.encode(original, k, m, w);
+			new Encoder(k, m, w).encode(original);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -203,8 +198,8 @@ public class JErasureTest {
 				content[i] = (byte) i;
 			}
 			original = createFile("original", content);
-			
-			Encoder.encode(original, k, m, w);
+
+			new Encoder(k, m, w).encode(original);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -260,7 +255,7 @@ public class JErasureTest {
 			File original = createFile("original", content);
 			assertEquals(original.length(), len);
 			int k = 3, m = 2, w = 7;
-			Encoder.encode(original, k, m, w);
+			new Encoder(k, m, w).encode(original);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
@@ -288,8 +283,8 @@ public class JErasureTest {
 			assertEquals(ext, getExtension(original.getName()));
 
 			int k = 3, m = 2, w = 7;
-			
-			Encoder.encode(original, k, m, w);
+
+			new Encoder(k, m, w).encode(original);
 
 			k_files = collectFiles(original.getAbsolutePath(), "k", k);
 			m_files = collectFiles(original.getAbsolutePath(), "m", m);
