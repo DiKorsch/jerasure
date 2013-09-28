@@ -216,36 +216,39 @@ public class Matrix{
 	
 	
 	public Matrix invert(int w) {
+		return protectedInvert(new Matrix(this), new Matrix(this), w);
+	}
+	
+	protected Matrix protectedInvert(Matrix self, Matrix inverse, int w){
 		if(this.cols() != this.rows()){
 			throw new IllegalArgumentException("Matrix have to a square matrix!");
 		}
-		Matrix self = new Matrix(this);
-		Matrix inverse = new Matrix(this);
-
+		
 		inverse.toIdentity();
-		
 		inverse = self.convertToUpperTriangular(inverse, w);
-		/* First -- convert into upper triangular  */
-		
-		
-		/* Now the matrix is upper triangular.  Start at the top and multiply down  */
-		
-		for (int i = rows()-1; i >= 0; i--) {
-			for (int j = 0; j < i; j++) {
-				if (self.get(i, j) != 0) {
-					for (int k = 0; k < cols(); k++) {
-						int mult = Galois.multiply(self.get(i, j), inverse.get(k, i), w);
-						inverse.set(k, j, inverse.get(k, j) ^ mult);
-					}
-					self.set(i, j, 0); 
-				}
-			}
-		}
+		inverse = self.multiplyDown(inverse, w);
 		
 		return inverse;
 	}
 	
-	
+	protected Matrix multiplyDown(Matrix inverse, int w) {
+		for (int i = rows()-1; i >= 0; i--) {
+			for (int j = 0; j < i; j++) {
+				if (this.get(i, j) != 0) {
+					int tmp = this.get(i, j);
+					for (int k = 0; k < cols(); k++) {
+						int mult = Galois.multiply(tmp, inverse.get(k, i), w);
+						inverse.set(k, j, inverse.get(k, j) ^ mult);
+						mult = Galois.multiply(tmp, this.get(k, i), w);
+						this.set(k, j, this.get(k, j) ^ mult);
+					}
+				}
+			}
+		}
+		return inverse;
+	}
+
+
 	protected Matrix convertToUpperTriangular(Matrix inverse, int w) {
 		for (int col = 0; col < cols(); col++) {
 			
@@ -297,8 +300,7 @@ public class Matrix{
 	}
 
 
-	protected void toIdentity(){
-		
+	private void toIdentity(){
 		for(int col = 0; col < cols(); col++){
 			for(int row = 0; row < rows(); row++){
 				this.set(col, row, col == row ? 1 : 0);

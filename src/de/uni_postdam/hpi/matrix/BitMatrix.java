@@ -108,36 +108,23 @@ public class BitMatrix extends Matrix{
 	
 	
 	public BitMatrix invert(int w) {
-		if(this.cols() != this.rows()){
-			throw new IllegalArgumentException("Matrix have to a square matrix!");
-		}
-		BitMatrix self = new BitMatrix(this);
-		BitMatrix inverse = new BitMatrix(this);
-
-		inverse.toIdentity();
-		inverse = self.convertToUpperTriangular(inverse, w);
-		
-		/* Now the matrix is upper triangular.  Start at the top and multiply down  */
+		return (BitMatrix) protectedInvert(new BitMatrix(this), new BitMatrix(this), w);
+	}
+	
+	@Override
+	protected BitMatrix multiplyDown(Matrix inverse, int w) {
 		
 		for (int i = rows()-1; i >= 0; i--) {
-			int row_start = i*cols();
 			for (int j = 0; j < i; j++) {
-				int rs2 = j*cols();
-				if (self.getWithIdx(rs2+i) != 0) {
-					int tmp = self.getWithIdx(rs2+i);
-					self.setWithIdx(rs2 + i, 0); 
-					for (int k = 0; k < cols(); k++) {
-						int mult = Galois.multiply(tmp, inverse.getWithIdx(row_start + k), w);
-						inverse.setWithIdx(rs2 + k, inverse.getWithIdx(rs2+k) ^ mult);
-					}
+				if (this.get(i, j) != 0) {
+					this.galois_add_row_to_other(i, j, w);
+					inverse.galois_add_row_to_other(i, j, w);
 				}
 			}
 		}
-		
-		return inverse;
+		return (BitMatrix) inverse;
 	}
-
-
+	
 	@Override
 	protected BitMatrix convertToUpperTriangular(Matrix inverse, int w) {
 		return (BitMatrix)super.convertToUpperTriangular(inverse, w);
