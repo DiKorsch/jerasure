@@ -61,9 +61,7 @@ public class Decoder {
 		if(all_k_parts_exist()){
 			decodeFromKParts(size);
 		} else {
-			Matrix encMat = Cauchy.good_general_coding_matrix(k, m, w);
-			BitMatrix encBitMat = new BitMatrix(encMat, w);
-			BitMatrix decMatrix = generate_decoding_bitmatrix(encBitMat);
+			BitMatrix decMatrix = this.generate_decoding_bitmatrix();
 //			System.out.println("encMat:");
 //			encMat.print(System.out);
 //			System.out.println("encBitMat:");
@@ -173,125 +171,62 @@ public class Decoder {
 		return result;
 	}
 
-	private BitMatrix generate_decoding_bitmatrix(BitMatrix mat){
+	public BitMatrix generate_decoding_bitmatrix(){
 		
-		BitMatrix test = null;
-		int[] content = null;
-		
+		updateErasures();
 		update_erased_ids();
 		
-		BitMatrix real_decoding_matrix = new BitMatrix(k, codingFailed+dataFailed, w);
+		BitMatrix mat = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
+		BitMatrix result = new BitMatrix(k, codingFailed + dataFailed, w);
 		
 		if(dataFailed > 0){
 			BitMatrix decoding_matrix = new BitMatrix(k,k,w);
 			decoding_matrix.toIdentity();
 			for (int i = 0; i < k; i++) {
-				if (row_to_id[i] != i) {
+				if (!deviceOK(i)) {
 					// memcpy(ptr, bitmatrix+k*w*w*(row_ids[i]-k), k*w*w*sizeof(int));
-					decoding_matrix.copyRows(i * w, mat, (row_to_id[i] - k) * w, w);
+					decoding_matrix.copyRows(i * w, mat, row_to_coding_id(i) * w, w);
 				}
 			}
 			
-			
-			if(k == 3 && m== 2 && w == 3){
-				content = new int[]{
-					1, 0, 0, 1, 0, 0, 1, 0, 0, 
-					0, 1, 0, 0, 1, 0, 0, 1, 0, 
-					0, 0, 1, 0, 0, 1, 0, 0, 1, 
-
-					1, 0, 0, 0, 0, 1, 1, 1, 0, 
-					0, 1, 0, 1, 0, 1, 0, 0, 1, 
-					0, 0, 1, 0, 1, 0, 1, 0, 0, 
-
-					0, 0, 0, 0, 0, 0, 1, 0, 0, 
-					0, 0, 0, 0, 0, 0, 0, 1, 0, 
-					0, 0, 0, 0, 0, 0, 0, 0, 1,
-				};
-				test = new BitMatrix(k,k,w, content);
-				assert decoding_matrix.equals(test);
-			}
-			
 			BitMatrix inverse = decoding_matrix.invert(w);
-			
-			
-			if(k == 3 && m== 2 && w == 3){
-				content = new int[]{
-					1, 1, 1, 0, 1, 1, 0, 1, 0, 
-					1, 0, 0, 1, 1, 0, 0, 1, 1, 
-					1, 1, 0, 1, 1, 1, 1, 0, 1, 
 
-					0, 1, 1, 0, 1, 1, 1, 1, 0, 
-					1, 1, 0, 1, 1, 0, 0, 0, 1, 
-					1, 1, 1, 1, 1, 1, 1, 0, 0, 
-
-					0, 0, 0, 0, 0, 0, 1, 0, 0, 
-					0, 0, 0, 0, 0, 0, 0, 1, 0, 
-					0, 0, 0, 0, 0, 0, 0, 0, 1, 
-
-				};
-				test = new BitMatrix(k,k,w, content);
-				assert inverse.equals(test);
-			}
-			
-			int ptr = 0;
 			for(int i = 0; i < dataFailed; i++){
-				real_decoding_matrix.copyWithIdx(ptr, inverse, k*w*w*row_to_id[k+i], k*w*w);
-				ptr += (k*w*w);
+				result.copyRows(i * w, inverse, row_to_id[i + k] * w, w);
 			}
 		}
 		
 		
-		for (int x = 0; x < codingFailed; x++) {
-		    int drive = row_to_id[x+dataFailed+k]-k;
-		    int ptr = k*w*w*(dataFailed+x);
+		for (int x = dataFailed; x < codingFailed + dataFailed; x++) {
+		    int codingId = row_to_coding_id(x + k);
+		    int currRow = x * w;
 		    // memcpy(ptr, bitmatrix+drive*k*w*w, sizeof(int)*k*w*w);
-		    real_decoding_matrix.copyWithIdx(ptr, mat, drive*k*w*w, k*w*w);
+			result.copyRows(currRow, mat, codingId * w, w);
 
-		    for (int i = 0; i < k; i++) {
-		      if (row_to_id[i] != i) {
-		        for (int j = 0; j < w; j++) {
-		        	real_decoding_matrix.zero(ptr+j*k*w+i*w, w); // bzero(ptr+j*k*w+i*w, sizeof(int)*w);
-		        }
-		      }  
-		    }
+			for (int i = 0; i < k; i++) {
+				if (!deviceOK(i)) {
+					result.zero(i * w, currRow, w, w);
+				}  
+			}
 
 		    /* There's the yucky part */
-
-		    int index = drive*k*w*w;
-		    for (int i = 0; i < k; i++) {
-		    	if (row_to_id[i] != i) {
-		    		int b1 =(id_to_row[i]-k)*k*w*w;
-		    		for (int j = 0; j < w; j++) {
-		    			int b2 = ptr + j*k*w;
-		    			for (int y = 0; y < w; y++) {
-		    				if (mat.getWithIdx(index+j*k*w+i*w+y) != 0) {
-		    					for (int z = 0; z < k*w; z++) {
-		    						// b2[z] = b2[z] ^ b1[z+y*k*w];
-		    						int val = real_decoding_matrix.getWithIdx(b2 + z) ^ real_decoding_matrix.getWithIdx(b1 + z+y*k*w);
-		    						real_decoding_matrix.setWithIdx(b2 + z, val);
-		    					}
-		    				}
-		    			}
-		    		}
-		    	}  
-		    }
+		    for (int dataId = 0; dataId < k; dataId++) {
+		    	if (deviceOK(dataId)) { continue; }
+		    	result.do_yucky_decoding_stuff(mat, currRow, id_to_row[dataId] - k, dataId, codingId);
+	    	}  
 	    }
 		
-		if(k == 3 && m == 2 && w == 3){
-			content = new int[]{
-				1, 1, 1, 0, 1, 1, 0, 1, 0, 
-				1, 0, 0, 1, 1, 0, 0, 1, 1, 
-				1, 1, 0, 1, 1, 1, 1, 0, 1, 
+		return result;
+	}
 	
-				0, 1, 1, 0, 1, 1, 1, 1, 0, 
-				1, 1, 0, 1, 1, 0, 0, 0, 1, 
-				1, 1, 1, 1, 1, 1, 1, 0, 0, 
-			};
-			test = new BitMatrix(k,m,w, content);
-			assert real_decoding_matrix.equals(test);
-		}
-		
-		return real_decoding_matrix;
+	
+
+	private int row_to_coding_id(int i){
+		return row_to_id[i] - k;
+	}
+	
+	private boolean deviceOK(int i){
+		return row_to_id[i] == i;
 	}
 	
 	private void update_erased_ids(){

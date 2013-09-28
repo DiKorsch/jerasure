@@ -119,9 +119,17 @@ public class BitMatrix extends Matrix{
 		}
 	}
 
-	public void zero(int start, int len) {
-		for(int i = start; i < start + len; i++){
+	public void zeroWithIdx(int startIdx, int len) {
+		for(int i = startIdx; i < startIdx + len; i++){
 			this.setWithIdx(i, 0);
+		}
+	}
+	
+	public void zero(int startCol, int startRow, int cols, int rows){
+		for(int col = 0; col < cols; col++){
+			for(int row = 0; row < rows; row++){
+				this.set(startCol + col, startRow + row, 0);
+			}
 		}
 	}
 	
@@ -143,6 +151,27 @@ public class BitMatrix extends Matrix{
 			}
 		}
 		return (BitMatrix) inverse;
+	}
+	
+	@Override
+	protected void galois_add_row_to_other(int srcIdx, int destIdx, int w) {
+		this.galois_add_row_to_other(srcIdx, destIdx);
+	}
+	
+	private void galois_add_row_to_other(int srcIdx, int destIdx) {
+		for(int i = 0; i < this.cols(); i++) {
+			this.set(i, destIdx, this.get(i, destIdx) ^ this.get(i, srcIdx));
+		}
+	}
+
+	public void do_yucky_decoding_stuff(BitMatrix encodingMatrix, int currRow, int dataRow, int dataId,
+			int codingId) {
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < w; j++) {
+				if (encodingMatrix.get(j + dataId * w, i + codingId * w) == 0) { continue; }
+				this.galois_add_row_to_other(j + dataRow * w, i + currRow);
+			}
+		}
 	}
 	
 }

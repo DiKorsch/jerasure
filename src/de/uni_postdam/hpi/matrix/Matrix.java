@@ -304,4 +304,8 @@ public class Matrix{
 		}
 	}
 	
+	
+	public void printIdx(int idx){
+		System.out.print(colFromIdx(idx) + " " + rowFromIdx(idx));
+	}
 }
