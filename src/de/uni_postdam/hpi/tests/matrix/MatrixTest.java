@@ -91,5 +91,38 @@ public class MatrixTest {
 		assertEquals(mSmall, mBig.rangeGet(1, 1, 2, 2));
 	}
 	
-	
+	@Test
+	public void test_inverse(){
+		Matrix 
+			orig = null, 
+			should = null;
+		int[] content = null;
+		int k = 0, w = 0;
+		
+		
+		k = 2; w = 2;
+		content = new int[]{2,3,3,2};
+		orig = new Matrix(k,k, content);
+		// inverse is the same!
+		should = new Matrix(k,k, content);
+		assertEquals(should, orig.invert(w));
+
+		
+		k = 3; w = 3;
+		content = new int[]{
+				4, 3, 2,
+				3, 4, 7,
+				2, 7, 4
+			};
+		orig = new Matrix(k,k, content);
+		
+		content = new int[]{
+				4, 6, 3,
+				6, 6, 2,
+				3, 2, 5
+			};
+		should = new Matrix(k,k, content);
+		assertEquals(should, orig.invert(w));
+		
+	}
 }

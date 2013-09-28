@@ -153,5 +153,60 @@ public class BitMatrixTest {
 		
 		assertArrayEquals(should, schedules);
 	}
+
+	@Test
+	public void test_invert(){
+		BitMatrix 
+			orig = null, 
+			should = null;
+		int[] content = null;
+		int k = 0, w = 0;
+		k = 2; w = 2;
+		content = new int[]{
+				0, 1, 1, 1, 
+				1, 1, 1, 0, 
+				1, 1, 0, 1, 
+				1, 0, 1, 1, 
+		};
+		orig = new BitMatrix(k, k, w, content);
+		content = new int[]{
+				0, 1, 1, 1, 
+				1, 1, 1, 0, 
+				1, 1, 0, 1, 
+				1, 0, 1, 1,  
+		};
+		should = new BitMatrix(k,k,w, content);
+		orig = orig.invert(w);
+		assertEquals(should, orig);
+		
+		
+		k = 3; w = 3;
+		content = new int[]{
+				0, 1, 0, 1, 0, 1, 0, 0, 1, 
+				0, 1, 1, 1, 1, 1, 1, 0, 1, 
+				1, 0, 1, 0, 1, 1, 0, 1, 0, 
+				1, 0, 1, 0, 1, 0, 1, 1, 1, 
+				1, 1, 1, 0, 1, 1, 1, 0, 0, 
+				0, 1, 1, 1, 0, 1, 1, 1, 0, 
+				0, 0, 1, 1, 1, 1, 0, 1, 0, 
+				1, 0, 1, 1, 0, 0, 0, 1, 1, 
+				0, 1, 0, 1, 1, 0, 1, 0, 1, 
+		};
+		orig = new BitMatrix(k, k, w, content);
+		content = new int[]{
+				0, 1, 0, 0, 1, 1, 1, 0, 1, 
+				0, 1, 1, 1, 1, 0, 1, 1, 1, 
+				1, 0, 1, 1, 1, 1, 0, 1, 1, 
+				0, 1, 1, 0, 1, 1, 0, 0, 1, 
+				1, 1, 0, 1, 1, 0, 1, 0, 1, 
+				1, 1, 1, 1, 1, 1, 0, 1, 0, 
+				1, 0, 1, 0, 0, 1, 1, 1, 0, 
+				1, 1, 1, 1, 0, 1, 0, 0, 1, 
+				0, 1, 1, 0, 1, 0, 1, 0, 0, 
+		};
+		should = new BitMatrix(k,k,w, content);
+		assertEquals(should, orig.invert(w));
+
 	
+	}
 }
