@@ -249,7 +249,7 @@ public class Matrix{
 	}
 
 
-	protected Matrix convertToUpperTriangular(Matrix inverse, int w) {
+	private Matrix convertToUpperTriangular(Matrix inverse, int w) {
 		for (int col = 0; col < cols(); col++) {
 			
 			/* Swap rows if we have a zero i,i element.  If we can't swap, then the 

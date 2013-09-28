@@ -106,7 +106,7 @@ public class BitMatrix extends Matrix{
 	}
 	
 	
-	
+	@Override
 	public BitMatrix invert(int w) {
 		return (BitMatrix) protectedInvert(new BitMatrix(this), new BitMatrix(this), w);
 	}
@@ -125,8 +125,4 @@ public class BitMatrix extends Matrix{
 		return (BitMatrix) inverse;
 	}
 	
-	@Override
-	protected BitMatrix convertToUpperTriangular(Matrix inverse, int w) {
-		return (BitMatrix)super.convertToUpperTriangular(inverse, w);
-	}
 }
