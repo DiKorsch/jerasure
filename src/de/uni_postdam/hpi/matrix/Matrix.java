@@ -144,34 +144,6 @@ public class Matrix{
 		return idx / cols();
 	}
 	
-
-	
-	
-	protected void swap_rows(int fromIdx, int toIdx){
-		for(int i = 0; i < this.cols(); i++){
-			int fromVal = this.get(i, fromIdx);
-			this.set(i, fromIdx, this.get(i, toIdx));
-			this.set(i, toIdx, fromVal);
-		}
-	}
-	
-	protected void galois_multiply_row(int rowIdx, int factor, int w) {
-		for(int i = 0; i < this.cols(); i++) {
-			this.set(i, rowIdx, Galois.multiply(this.get(i, rowIdx), factor, w));
-		}
-	}
-	
-	protected void galois_divide_row(int rowIdx, int divisor, int w) {
-		for(int i = 0; i < this.cols(); i++) {
-			this.set(i, rowIdx, Galois.divide(this.get(i, rowIdx), divisor, w));
-		}
-	}
-	
-	protected void galois_add_row_to_other(int srcIdx, int destIdx, int w){
-		for(int i = 0; i < this.cols(); i++) {
-			this.set(i, destIdx, Galois.add(this.get(i, destIdx), this.get(i, srcIdx), w));
-		}
-	}
 	
 	
 	
@@ -214,12 +186,11 @@ public class Matrix{
 	}
 	
 	
-	
 	public Matrix invert(int w) {
-		return protectedInvert(new Matrix(this), new Matrix(this), w);
+		return invert(new Matrix(this), new Matrix(this), w);
 	}
 	
-	protected Matrix protectedInvert(Matrix self, Matrix inverse, int w){
+	protected Matrix invert(Matrix self, Matrix inverse, int w){
 		if(this.cols() != this.rows()){
 			throw new IllegalArgumentException("Matrix have to a square matrix!");
 		}
@@ -247,7 +218,6 @@ public class Matrix{
 		}
 		return inverse;
 	}
-
 
 	private Matrix convertToUpperTriangular(Matrix inverse, int w) {
 		for (int col = 0; col < cols(); col++) {
@@ -299,12 +269,31 @@ public class Matrix{
 		return inverse;
 	}
 
-
 	private void toIdentity(){
 		for(int col = 0; col < cols(); col++){
 			for(int row = 0; row < rows(); row++){
 				this.set(col, row, col == row ? 1 : 0);
 			}
+		}
+	}
+	
+	private void swap_rows(int fromIdx, int toIdx){
+		for(int i = 0; i < this.cols(); i++){
+			int fromVal = this.get(i, fromIdx);
+			this.set(i, fromIdx, this.get(i, toIdx));
+			this.set(i, toIdx, fromVal);
+		}
+	}
+	
+	private void galois_divide_row(int rowIdx, int divisor, int w) {
+		for(int i = 0; i < this.cols(); i++) {
+			this.set(i, rowIdx, Galois.divide(this.get(i, rowIdx), divisor, w));
+		}
+	}
+	
+	private void galois_add_row_to_other(int srcIdx, int destIdx, int w){
+		for(int i = 0; i < this.cols(); i++) {
+			this.set(i, destIdx, Galois.add(this.get(i, destIdx), this.get(i, srcIdx), w));
 		}
 	}
 	
