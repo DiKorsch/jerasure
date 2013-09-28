@@ -109,17 +109,24 @@ public class Matrix{
 	
 
 	public Matrix rangeGet(int beginCol, int beginRow, int cols, int rows) {
+		return rangeGet(beginCol, beginRow, cols, rows, new Matrix(cols, rows));
+	}
+	
+	public Matrix getRows(int beginRow, int rows){
+		return this.rangeGet(0, beginRow, cols(), rows);
+	}
+	
+	protected Matrix rangeGet(int beginCol, int beginRow, int cols, int rows, Matrix dest){
 		if(beginCol + cols > this.cols || beginRow + rows > this.rows){
 			throw new IllegalArgumentException("Source matrix is too small!");
 		}
-		
-		Matrix result = new Matrix(cols, rows);
+
 		for(int col = 0; col < cols; col++){
 			for(int row = 0; row < rows; row++){
-				result.set(col, row, this.get(col + beginCol, row + beginRow));
+				dest.set(col, row, this.get(col + beginCol, row + beginRow));
 			}
 		}
-		return result;
+		return dest;
 	}
 	
 	
@@ -269,7 +276,7 @@ public class Matrix{
 		return inverse;
 	}
 
-	private void toIdentity(){
+	public void toIdentity(){
 		for(int col = 0; col < cols(); col++){
 			for(int row = 0; row < rows(); row++){
 				this.set(col, row, col == row ? 1 : 0);

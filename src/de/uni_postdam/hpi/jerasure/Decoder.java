@@ -24,6 +24,8 @@ public class Decoder {
 	int[] row_to_id = null;
 	int[] id_to_row = null;
 	
+	int dataFailed = 0, codingFailed = 0;
+	
 	
 	public Decoder(File file, int k, int m, int w) {
 		this.original = file;
@@ -177,31 +179,17 @@ public class Decoder {
 		int[] content = null;
 		
 		update_erased_ids();
-		int cdf = 0, ddf = 0;
-		for (int i = 0; i < erasures.length; i++) {
-			if (erasures[i]){
-				if(i < k) ddf++; 
-				else cdf++;
-			}
-		}
 		
-		BitMatrix real_decoding_matrix = new BitMatrix(k, cdf+ddf, w);
+		BitMatrix real_decoding_matrix = new BitMatrix(k, codingFailed+dataFailed, w);
 		
-		if(ddf > 0){
+		if(dataFailed > 0){
 			BitMatrix decoding_matrix = new BitMatrix(k,k,w);
-			int ptr = 0;
+			decoding_matrix.toIdentity();
 			for (int i = 0; i < k; i++) {
-				if (row_to_id[i] == i) {
-					// diagonale mit 1 setzen, den rest mit 0        
-					decoding_matrix.zero(ptr, k*w*w); // bzero(ptr, k*w*w*sizeof(int));
-					for (int x = 0; x < w; x++) {
-						decoding_matrix.setWithIdx(ptr + x+i*w+x*k*w, 1);
-					} 
-				} else {
+				if (row_to_id[i] != i) {
 					// memcpy(ptr, bitmatrix+k*w*w*(row_ids[i]-k), k*w*w*sizeof(int));
-					decoding_matrix.copy_withIdx(ptr, mat, k*w*w*(row_to_id[i]-k), k*w*w);
+					decoding_matrix.copyRows(i * w, mat, (row_to_id[i] - k) * w, w);
 				}
-				ptr += (k*w*w);
 			}
 			
 			
@@ -245,19 +233,19 @@ public class Decoder {
 				assert inverse.equals(test);
 			}
 			
-			ptr = 0;
-			for(int i = 0; i < ddf; i++){
-				real_decoding_matrix.copy_withIdx(ptr, inverse, k*w*w*row_to_id[k+i], k*w*w);
+			int ptr = 0;
+			for(int i = 0; i < dataFailed; i++){
+				real_decoding_matrix.copyWithIdx(ptr, inverse, k*w*w*row_to_id[k+i], k*w*w);
 				ptr += (k*w*w);
 			}
 		}
 		
 		
-		for (int x = 0; x < cdf; x++) {
-		    int drive = row_to_id[x+ddf+k]-k;
-		    int ptr = k*w*w*(ddf+x);
+		for (int x = 0; x < codingFailed; x++) {
+		    int drive = row_to_id[x+dataFailed+k]-k;
+		    int ptr = k*w*w*(dataFailed+x);
 		    // memcpy(ptr, bitmatrix+drive*k*w*w, sizeof(int)*k*w*w);
-		    real_decoding_matrix.copy_withIdx(ptr, mat, drive*k*w*w, k*w*w);
+		    real_decoding_matrix.copyWithIdx(ptr, mat, drive*k*w*w, k*w*w);
 
 		    for (int i = 0; i < k; i++) {
 		      if (row_to_id[i] != i) {
@@ -309,6 +297,8 @@ public class Decoder {
 	private void update_erased_ids(){
 		row_to_id = new int[k+m];
 		id_to_row = new int[k+m];
+		codingFailed = 0;
+		dataFailed = 0;
 		
 		int j = k, x = k;
 		for (int i = 0; i < k; i++) {
@@ -321,21 +311,25 @@ public class Decoder {
 						throw new RuntimeException("Not enough redundant parts!");
 					}
 				}
+				dataFailed++;
 				row_to_id[i] = j;
 				id_to_row[j] = i;
 				j++;
-				row_to_id[x] = i;
 				id_to_row[i] = x;
+				row_to_id[x] = i;
 				x++;
 			}
 		}
 		for (int i = k; i < k+m; i++) {
 			if (erasures[i]) {
+				codingFailed++;
 				row_to_id[x] = i;
 				id_to_row[i] = x;
 				x++;
 			}
 		}
+		
+		System.out.println();
 	}
 }
 

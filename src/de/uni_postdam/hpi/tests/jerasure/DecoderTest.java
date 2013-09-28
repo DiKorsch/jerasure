@@ -112,7 +112,7 @@ public class DecoderTest {
 		assertTrue(f.delete());
 		assertFalse(f.exists());
 		dec.decode(size);
-		assertTrue(f.exists());
+		assertTrue("Decoded file does not exist!", f.exists());
 		
 		assertEquals(size, f.length());
 		

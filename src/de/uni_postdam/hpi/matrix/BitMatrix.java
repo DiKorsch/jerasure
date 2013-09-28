@@ -49,6 +49,15 @@ public class BitMatrix extends Matrix{
 		return result;
 	}
 	
+	@Override
+	public BitMatrix getRows(int beginRow, int rows) {
+		return (BitMatrix) super.getRows(beginRow, rows);
+	}
+	
+	@Override
+	public BitMatrix rangeGet(int beginCol, int beginRow, int cols, int rows) {
+		return (BitMatrix) super.rangeGet(beginCol, beginRow, cols, rows, new BitMatrix(cols / this.w, rows / this.w , this.w));
+	}
 	
 	public Schedule[] toSchedules(int k, int w){
 		
@@ -92,11 +101,22 @@ public class BitMatrix extends Matrix{
 	}
 
 	
-	public void copy_withIdx(int start, BitMatrix src, int srcStart, int length) {
+	public void copyWithIdx(int start, BitMatrix src, int srcStart, int length) {
 		for(int i = 0; i < length; i++){
 			this.setWithIdx(start + i, src.getWithIdx(srcStart + i));
 		}
-		
+	}
+	
+	public void copyRows(int rowIdx, BitMatrix src, int srcRowIdx, int numRows){
+		if(src.cols() != this.cols()){
+			throw new IllegalArgumentException("both matrices must have same col number!");
+		}
+		BitMatrix rows = src.getRows(srcRowIdx, numRows);
+		for (int row = 0; row < numRows; row++) {
+			for(int col = 0; col < this.cols(); col++){
+				this.set(col, row + rowIdx, rows.get(col, row));
+			}
+		}
 	}
 
 	public void zero(int start, int len) {
