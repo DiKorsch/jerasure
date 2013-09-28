@@ -291,7 +291,7 @@ public class Matrix{
 		}
 	}
 	
-	private void galois_add_row_to_other(int srcIdx, int destIdx, int w){
+	protected void galois_add_row_to_other(int srcIdx, int destIdx, int w){
 		for(int i = 0; i < this.cols(); i++) {
 			this.set(i, destIdx, Galois.add(this.get(i, destIdx), this.get(i, srcIdx), w));
 		}
