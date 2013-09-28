@@ -21,7 +21,7 @@ public class DecoderTest {
 
 	static File testDir = new File("decoderTest");
 
-	int k = 3, m = 1, w = 2;
+	int k = 10, m = 1, w = 7;
 
 	File getFile(String fileName) {
 		return new File(testDir.getAbsolutePath() + File.separator + fileName);
@@ -29,7 +29,7 @@ public class DecoderTest {
 	
 	void cleanAndCreateFile(File f){
 		cleanDir(testDir);
-		assertTrue(createRandomContentFile(f, 100 * MB));
+		assertTrue(createRandomContentFile(f, 1 * MB));
 	}
 
 	@BeforeClass
@@ -56,7 +56,7 @@ public class DecoderTest {
 		cleanDir(testDir);
 	}
 
-//	@Test
+	@Test
 	public void test_validator() {
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
@@ -82,7 +82,9 @@ public class DecoderTest {
 	public void test_decoding_with_all_k_parts() throws NoSuchAlgorithmException, IOException{
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
+		
 		m_parts_missing(f);
+		
 		long size = f.length();
 		String hashShould = getMD5Hash(f);
 		Files.copy(f, getFile("original"));
@@ -96,6 +98,28 @@ public class DecoderTest {
 		assertEquals(hashShould, getMD5Hash(f));
 	}
 
+	@Test 
+	public void test_decoding_with_m_of_k_parts_missing() throws NoSuchAlgorithmException, IOException{
+		k = 3; m = 2; w = 3;
+		File f = getFile("someFile");
+		Decoder dec = new Decoder(f, k, m, w);
+		
+		m_of_k_parts_missing(f);
+		
+		long size = f.length();
+		String hashShould = getMD5Hash(f);
+		Files.copy(f, getFile("original"));
+		assertTrue(f.delete());
+		assertFalse(f.exists());
+		dec.decode(size);
+		assertTrue(f.exists());
+		
+		assertEquals(size, f.length());
+		
+		assertEquals(hashShould, getMD5Hash(f));
+	}
+	
+	
 	// Scenarios
 	private void all_parts_exist(File f) {
 		cleanAndCreateFile(f);
@@ -127,6 +151,8 @@ public class DecoderTest {
 		assertTrue(collectFiles(f.getAbsolutePath(), "k", k)[0].delete());
 		
 	}
+	
+	
 	
 
 }
