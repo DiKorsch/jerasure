@@ -24,8 +24,8 @@ public class Decoder {
 	File[] k_parts, m_parts;
 	
 	boolean[] erasures = null;
-	int[] row_to_id = null;
-	int[] id_to_row = null;
+	int[] row_to_device_id = null;
+	int[] device_id_to_row = null;
 	
 	int dataFailed = 0, codingFailed = 0;
 	
@@ -202,8 +202,8 @@ public class Decoder {
 	private SortedMap<Integer, FileInputStream> getExistingParts() throws FileNotFoundException {
 		SortedMap<Integer, FileInputStream> allParts = new TreeMap<Integer, FileInputStream>();
 		int c = 0;
-		for(int i : row_to_id){
-			File currFile = i < k ? k_parts[i] : m_parts[i - k];
+		for(int deviceId : row_to_device_id){
+			File currFile = deviceId < k ? k_parts[deviceId] : m_parts[deviceId - k];
 			if(!currFile.exists()) 
 				continue;
 			allParts.put(c++, new FileInputStream(currFile));
@@ -214,8 +214,8 @@ public class Decoder {
 	private FileOutputStream[] getMissingParts() throws FileNotFoundException {
 		FileOutputStream[] missing = new FileOutputStream[dataFailed];
 		int c = 0;
-		for(int i : row_to_id){
-			File currFile = i < k ? k_parts[i] : m_parts[i - k];
+		for(int deviceId : row_to_device_id){
+			File currFile = deviceId < k ? k_parts[deviceId] : m_parts[deviceId - k];
 			if(currFile.exists()) 
 				continue;
 			missing[c++] = new FileOutputStream(currFile);
@@ -283,22 +283,22 @@ public class Decoder {
 		updateErasures();
 		update_erased_ids();
 		
-		BitMatrix mat = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
+		BitMatrix encodingMatrix = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
 		BitMatrix result = new BitMatrix(k, codingFailed + dataFailed, w);
 		
 		if(dataFailed > 0){
-			BitMatrix decoding_matrix = new BitMatrix(k,k,w);
+			BitMatrix decoding_matrix = new BitMatrix(k, k, w);
 			decoding_matrix.toIdentity();
-			for (int i = 0; i < k; i++) {
-				if (!deviceOK(i)) {
-					decoding_matrix.copyRows(i * w, mat, row_to_coding_id(i) * w, w);
+			for (int dataDeviceId = 0; dataDeviceId < k; dataDeviceId++) {
+				if (!deviceOK(dataDeviceId)) {
+					decoding_matrix.copyRows(dataDeviceId * w, encodingMatrix, row_to_coding_id(dataDeviceId) * w, w);
 				}
 			}
 			
 			BitMatrix inverse = decoding_matrix.invert(w);
 
-			for(int i = 0; i < dataFailed; i++){
-				result.copyRows(i * w, inverse, row_to_id[i + k] * w, w);
+			for(int deviceId = 0; deviceId < dataFailed; deviceId++){
+				result.copyRows(deviceId * w, inverse, row_to_device_id[deviceId + k] * w, w);
 			}
 		}
 		
@@ -306,18 +306,18 @@ public class Decoder {
 		for (int x = dataFailed; x < codingFailed + dataFailed; x++) {
 		    int codingId = row_to_coding_id(x + k);
 		    int currRow = x * w;
-			result.copyRows(currRow, mat, codingId * w, w);
+			result.copyRows(currRow, encodingMatrix, codingId * w, w);
 
-			for (int i = 0; i < k; i++) {
-				if (!deviceOK(i)) {
-					result.zero(i * w, currRow, w, w);
+			for (int dataDeviceId = 0; dataDeviceId < k; dataDeviceId++) {
+				if (!deviceOK(dataDeviceId)) {
+					result.zero(dataDeviceId * w, currRow, w, w);
 				}  
 			}
 
 		    /* There's the yucky part */
 		    for (int dataId = 0; dataId < k; dataId++) {
 		    	if (deviceOK(dataId)) { continue; }
-		    	result.do_yucky_decoding_stuff(mat, currRow, id_to_row[dataId] - k, dataId, codingId);
+		    	result.do_yucky_decoding_stuff(encodingMatrix, currRow, device_id_to_row[dataId] - k, dataId, codingId);
 	    	}  
 	    }
 		
@@ -327,24 +327,24 @@ public class Decoder {
 	
 
 	private int row_to_coding_id(int i){
-		return row_to_id[i] - k;
+		return row_to_device_id[i] - k;
 	}
 	
 	private boolean deviceOK(int i){
-		return row_to_id[i] == i;
+		return row_to_device_id[i] == i;
 	}
 	
 	private void update_erased_ids(){
-		row_to_id = new int[k+m];
-		id_to_row = new int[k+m];
+		row_to_device_id = new int[k+m];
+		device_id_to_row = new int[k+m];
 		codingFailed = 0;
 		dataFailed = 0;
 		
 		int j = k, x = k;
 		for (int i = 0; i < k; i++) {
 			if (!erasures[i]) {
-				row_to_id[i] = i;
-				id_to_row[i] = i;
+				row_to_device_id[i] = i;
+				device_id_to_row[i] = i;
 			} else {
 				while (erasures[j]){
 					if(++j == erasures.length){
@@ -352,19 +352,19 @@ public class Decoder {
 					}
 				}
 				dataFailed++;
-				row_to_id[i] = j;
-				id_to_row[j] = i;
+				row_to_device_id[i] = j;
+				device_id_to_row[j] = i;
 				j++;
-				id_to_row[i] = x;
-				row_to_id[x] = i;
+				device_id_to_row[i] = x;
+				row_to_device_id[x] = i;
 				x++;
 			}
 		}
 		for (int i = k; i < k+m; i++) {
 			if (erasures[i]) {
 				codingFailed++;
-				row_to_id[x] = i;
-				id_to_row[i] = x;
+				row_to_device_id[x] = i;
+				device_id_to_row[i] = x;
 				x++;
 			}
 		}
