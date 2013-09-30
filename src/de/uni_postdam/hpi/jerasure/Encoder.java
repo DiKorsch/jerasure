@@ -44,7 +44,6 @@ public class Encoder {
 	}
 
 	public void encode(File file) {
-//		System.out.println("Encoding " + file.getAbsolutePath());
 		if (!file.exists()) {
 			System.err.println("File " + file.getAbsolutePath()
 					+ " does not exist!");
@@ -61,15 +60,12 @@ public class Encoder {
 			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
 			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
 
-//			System.out.println("Packet size: " + packetSize);
-//			System.out.println("Buffer size: " + bufferSize);
-
 			byte[] buffer = new byte[bufferSize];
 			int numRead = 0;
 
 			Schedule[] schedules = Schedule.generate(k, m, w);
 			while ((numRead = fis.read(buffer)) >= 0) {
-				if (buffer.length != numRead) {
+				if (bufferSize != numRead) {
 					buffer = Arrays.copyOfRange(buffer, 0, numRead);
 					performLastReadEncoding(buffer, k_parts, m_parts, w, schedules);
 				} else {
