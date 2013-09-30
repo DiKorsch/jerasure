@@ -3,11 +3,12 @@
   <groupId>de.uni-potsdam.hpi.jerasure</groupId>
   <artifactId>JErasure</artifactId>
   <version>0.1.0</version>
-  <!--<parent> 
+<!-- IMPORTANT! this is needed for deploy! -->
+  <parent> 
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>7</version>
-  </parent> -->
+  </parent> 
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
