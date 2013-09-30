@@ -51,8 +51,7 @@ public class Decoder {
 	
 	public void decode(long size) {
 		if(!isValid()){
-			System.err.println("Not enough parts to decode the original!");
-			return;
+			throw new RuntimeException("Not enough parts to decode the original!");
 		}
 		this.originalFileSize = size;
 		calcSizes();

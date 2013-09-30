@@ -67,7 +67,7 @@ public class Encoder {
 					buffer = Arrays.copyOfRange(buffer, 0, numRead);
 					performLastReadEncoding(buffer, k_parts, m_parts, w, schedules);
 				} else {
-					performNormalEncoding(buffer, k_parts, m_parts, w, schedules);
+					performEncoding(buffer, k_parts, m_parts, w, schedules);
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -90,19 +90,19 @@ public class Encoder {
 			FileOutputStream[] m_parts, int w, Schedule[] schedules)
 			throws IOException {
 
-		performNormalEncoding(buffer, k_parts, m_parts,	w, schedules);
-		int start = buffer.length / blockSize;
-		int length = buffer.length % blockSize;
+		performEncoding(buffer, k_parts, m_parts,	w, schedules);
+		int start = (buffer.length / blockSize) * blockSize;
+		int end = start + buffer.length % blockSize;
 		if(start == 0){
 			// no copy needed here!
 			encodeAndWrite(buffer, k_parts, m_parts);
 		} else {
-			encodeAndWrite(Arrays.copyOfRange(buffer, start, length), k_parts, m_parts);
+			encodeAndWrite(Arrays.copyOfRange(buffer, start, end), k_parts, m_parts);
 		}
 
 	}
 
-	private void performNormalEncoding(byte[] buffer, FileOutputStream[] k_parts,
+	private void performEncoding(byte[] buffer, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts, int w, Schedule[] schedules)
 			throws IOException {
 
