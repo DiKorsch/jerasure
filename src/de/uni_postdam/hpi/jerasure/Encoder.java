@@ -45,9 +45,8 @@ public class Encoder {
 
 	public void encode(File file) {
 		if (!file.exists()) {
-			System.err.println("File " + file.getAbsolutePath()
+			throw new IllegalArgumentException("File " + file.getAbsolutePath()
 					+ " does not exist!");
-			return;
 		}
 		FileInputStream fis = null;
 		FileOutputStream[] k_parts = null;
@@ -55,8 +54,7 @@ public class Encoder {
 
 		try {
 			fis = new FileInputStream(file);
-			long size = file.length();
-			calcSizes(size);
+			calcSizes(file.length());
 			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
 			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
 
@@ -95,7 +93,12 @@ public class Encoder {
 		performNormalEncoding(buffer, k_parts, m_parts,	w, schedules);
 		int start = buffer.length / blockSize;
 		int length = buffer.length % blockSize;
-		encodeAndWrite(Arrays.copyOfRange(buffer, start, length), k_parts, m_parts);
+		if(start == 0){
+			// no copy needed here!
+			encodeAndWrite(buffer, k_parts, m_parts);
+		} else {
+			encodeAndWrite(Arrays.copyOfRange(buffer, start, length), k_parts, m_parts);
+		}
 
 	}
 
