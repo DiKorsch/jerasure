@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 import static de.uni_postdam.hpi.utils.FileUtils.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.junit.After;
@@ -305,37 +303,6 @@ public class EncoderTest {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	
-	private boolean checkFileContent(File f, byte[] should) throws IOException {
-		
-		FileInputStream fis = new FileInputStream(f);
-		byte[] content = new byte[should.length];
-		fis.read(content);
-		fis.close();
-		for(int i = 0; i < should.length; i++){
-			if(content[i] != should[i])
-				return false;
-		}
-		return true;
-	}
-
-	
-
-	
-	private File createFile(String fileName, String extension, byte[] content) throws IOException{
-		File result = File.createTempFile(fileName, extension);
-		result.deleteOnExit();
-		FileOutputStream fos = null;
-		fos = new FileOutputStream(result);
-		fos.write(content);
-		fos.close();
-		return result;
-		
-	}
-	private File createFile(String fileName, byte[] content) throws IOException{
-		return createFile(fileName, "", content);
 	}
 	
 }

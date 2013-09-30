@@ -3,14 +3,17 @@ package de.uni_postdam.hpi.jerasure;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import static de.uni_postdam.hpi.utils.CalcUtils.*;
 import de.uni_postdam.hpi.cauchy.Cauchy;
 import de.uni_postdam.hpi.matrix.*;
+import de.uni_postdam.hpi.utils.CodingUtils;
 import de.uni_postdam.hpi.utils.FileUtils;
 
 public class Decoder {
@@ -26,6 +29,11 @@ public class Decoder {
 	
 	int dataFailed = 0, codingFailed = 0;
 	
+	Schedule[] schedules = null;
+	
+	int packetSize = 0, bufferSize = 0, blockSize = 0;
+	
+	long originalFileSize = 0;
 	
 	public Decoder(File file, int k, int m, int w) {
 		this.original = file;
@@ -58,18 +66,28 @@ public class Decoder {
 			System.err.println("Not enough parts to decode the original!");
 			return;
 		}
-		if(all_k_parts_exist()){
-			decodeFromKParts(size);
-		} else {
-			BitMatrix decMatrix = this.generate_decoding_bitmatrix();
-//			System.out.println("encMat:");
-//			encMat.print(System.out);
-//			System.out.println("encBitMat:");
-//			encBitMat.print(System.out);
-//			System.out.println("decMat:");
-//			decMatrix.print(System.out);
+		this.originalFileSize = size;
+		calcSizes();
+		if(!all_k_parts_exist()){
+			generateSchedules();
+			restoreKParts();
 		}
+		decodeFromKParts();
 	}
+	
+	private void generateSchedules(){
+		BitMatrix decMatrix = this.generate_decoding_bitmatrix();
+		schedules = decMatrix.toSchedules(k, w);
+	}
+
+	public byte[] decode(byte[] data, int packetSize){
+		if(schedules == null){
+			generateSchedules();
+		}
+		return CodingUtils.enOrDecode(data, schedules, k, m, w, packetSize);
+	}
+	
+	
 	public boolean isValid(){
 		updateErasures();
 		int c = 0;
@@ -96,23 +114,98 @@ public class Decoder {
 		}
 		return result;
 	}
+	
+	private SortedMap<Integer, FileInputStream> orderByExistingParts() throws FileNotFoundException {
+		SortedMap<Integer, FileInputStream> allParts = new TreeMap<Integer, FileInputStream>();
+		int c = 0;
+		for(int i : row_to_id){
+			File currFile = i < k ? k_parts[i] : m_parts[i - k];
+			if(!currFile.exists()) 
+				continue;
+			allParts.put(c++, new FileInputStream(currFile));
+		}
+		return allParts;
+	}
 
-	private void decodeFromKParts(long size){
-		int packetSize = calcPacketSize(k, w, size);
-		int blockSize = calcBlockSize(k, w, packetSize);
-		int bufferSize = calcBufferSize(k, w, packetSize, size);
+	private FileOutputStream[] getMissingParts() throws FileNotFoundException {
+		FileOutputStream[] missing = new FileOutputStream[dataFailed];
+		int c = 0;
+		for(int i : row_to_id){
+			File currFile = i < k ? k_parts[i] : m_parts[i - k];
+			if(currFile.exists()) 
+				continue;
+			missing[c++] = new FileOutputStream(currFile);
+			if(c == dataFailed){
+				break;
+			}
+		}
+		return missing;
+	}
+	
+	private void calcSizes(){
+		packetSize = calcPacketSize(k, w, originalFileSize);
+		blockSize = calcBlockSize(k, w, packetSize);
+		bufferSize = calcBufferSize(k, w, packetSize, originalFileSize);
+	}
 
+	private void restoreKParts() {
+		SortedMap<Integer, FileInputStream> parts = null;
+		FileOutputStream[] missing_parts = null;
+		try {
+			parts = orderByExistingParts();
+			missing_parts = getMissingParts();
+			int bytesWritten = 0;
+			while (bytesWritten < originalFileSize) {
+				int bytesToWrite = (int) Math.min(bufferSize, originalFileSize - bytesWritten);
+				byte[] buffer = null;
+				if(bytesToWrite != bufferSize){
+					buffer = read_from_parts(parts, blockSize); 
+				} else {
+					buffer = read_from_parts(parts, bufferSize); 
+				}
+				performDecoding(buffer, missing_parts);
+				bytesWritten += bytesToWrite;
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			closeStreams(parts);
+			FileUtils.close(missing_parts);
+		}
+		
+	}
+	
+
+	private void performDecoding(byte[] buffer,
+			FileOutputStream[] missing_parts) throws IOException {
+		for (int i = 0; i < buffer.length / blockSize; i++) {
+			decodeAndWrite(Arrays.copyOfRange(buffer, i * blockSize, (i+1) * blockSize), missing_parts);
+		}
+	}
+	
+	private void decodeAndWrite(byte[] data, 
+			FileOutputStream[] missing_parts) throws IOException{
+
+		byte[] restored = decode(data, packetSize);
+		FileUtils.writeRestored(restored, missing_parts, k, w, packetSize);
+	}
+
+
+	private void decodeFromKParts(){
+		
 		RandomAccessFile f = null;
 		byte[] buffer = null;
 		SortedMap<Integer, FileInputStream> parts = null;
 		try {
 			parts = orderParts(k_parts, "k");
 			f = new RandomAccessFile(original, "rw");
-			f.setLength(size);
+			f.setLength(originalFileSize);
 			int bytesWritten = 0;
-			while (bytesWritten < size) {
-				int bytesToWrite = (int) Math.min(bufferSize, size - bytesWritten);
-				buffer = read_from_k_parts(parts, packetSize, blockSize, bytesToWrite);
+			while (bytesWritten < originalFileSize) {
+				int bytesToWrite = (int) Math.min(bufferSize, originalFileSize - bytesWritten);
+				buffer = read_from_parts(parts, bytesToWrite);
 				f.write(buffer);
 				bytesWritten += bytesToWrite;
 			}
@@ -125,12 +218,7 @@ public class Decoder {
 				if(f != null){
 					f.close();
 				}
-				if(parts != null){
-					for(FileInputStream part: parts.values()){
-						if(part != null)
-							part.close();
-					}
-				}
+				closeStreams(parts);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -139,15 +227,29 @@ public class Decoder {
 	}
 
 
-	private byte[] read_from_k_parts(SortedMap<Integer, FileInputStream> parts, int packetSize, int blockSize, int bytesToWrite) throws IOException {
+	private void closeStreams(SortedMap<Integer, FileInputStream> parts) {
+		try {
+			if(parts != null){
+				for(FileInputStream part: parts.values()){
+					if(part != null)
+						part.close();
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	private byte[] read_from_parts(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException {
 		
-		if(bytesToWrite < blockSize){
-			return read_last_bytes(parts, packetSize, bytesToWrite);
+		if(bytesToRead < blockSize){
+			return read_last_bytes(parts, packetSize, bytesToRead);
 		}
 		
-		byte[] result = new byte[bytesToWrite];
+		byte[] result = new byte[bytesToRead];
 		int c = 0;
-		for(int i = 0; i < bytesToWrite / blockSize; i++){
+		for(int i = 0; i < bytesToRead / blockSize; i++){
 			for(FileInputStream part_fos: parts.values()){
 				byte[] packet = new byte[packetSize * w];
 				part_fos.read(packet);
@@ -159,14 +261,17 @@ public class Decoder {
 		return result;
 	}
 	
-	private byte[] read_last_bytes(SortedMap<Integer, FileInputStream> parts, int packetSize, int bytesToWrite) throws IOException{
-		byte[] result = new byte[bytesToWrite];
+	private byte[] read_last_bytes(SortedMap<Integer, FileInputStream> parts, int packetSize, int bytesToRead) throws IOException{
+		byte[] result = new byte[bytesToRead];
 		int c = 0;
 		for(FileInputStream part_fos: parts.values()){
-			do{
-				result[c++] = (byte) part_fos.read();
-				if(c == bytesToWrite) return result;
-			} while(c % (packetSize * w) != 0);
+			byte[] packet = new byte[packetSize * w];
+			if(part_fos.read(packet) != -1){
+				for(byte b: packet){
+					result[c++] = b;
+					if(c == bytesToRead) return result;
+				}
+			}
 		}
 		return result;
 	}

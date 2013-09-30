@@ -1,6 +1,7 @@
 package de.uni_postdam.hpi.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -90,6 +91,13 @@ public class FileUtils {
 		return getNameAndExtension(fileName)[1];
 	}
 	
+	
+	public static void writeRestored(byte[] restored, FileOutputStream[] missing, int k, int w, int packetSize) throws IOException{
+		
+		for (int i = 0; i < missing.length; i++) {
+			FileUtils.write(i + k, missing[i], restored, w, packetSize);
+		}
+	}
 	
 	public static void writeParts(byte[] dataAndCoding,
 			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
@@ -245,5 +253,35 @@ public class FileUtils {
 		return hashString;
 	}
 
+	
+	public static File createFile(String fileName, byte[] content) throws IOException{
+		return createFile(fileName, "", content);
+	}
+	
+	public static File createFile(String fileName, String extension, byte[] content) throws IOException{
+		File result = File.createTempFile(fileName, extension);
+		result.deleteOnExit();
+		FileOutputStream fos = null;
+		fos = new FileOutputStream(result);
+		fos.write(content);
+		fos.close();
+		return result;
+		
+	}
+	
+
+	
+	public static boolean checkFileContent(File f, byte[] should) throws IOException {
+		
+		FileInputStream fis = new FileInputStream(f);
+		byte[] content = new byte[should.length];
+		fis.read(content);
+		fis.close();
+		for(int i = 0; i < should.length; i++){
+			if(content[i] != should[i])
+				return false;
+		}
+		return true;
+	}
 
 }

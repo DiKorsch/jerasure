@@ -90,6 +90,15 @@ public class Schedule {
 		BitMatrix matrix = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
 		return matrix.toSchedules(k, w);
 	}
+
+	public static byte[] do_scheduled_operations(byte[] dataAndCoding, Schedule[] schedules, long dataSize, int packetSize, int w){
+		for (int done = 0; done < dataSize; done += packetSize * w) {
+			for (Schedule sched : schedules) {
+				dataAndCoding = sched.operate(dataAndCoding, packetSize, w);
+			}
+		}
+		return dataAndCoding;
+	}
 }
 
 
