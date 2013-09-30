@@ -43,4 +43,10 @@
     	<version>13.0.1</version>
     </dependency>
   </dependencies>
+
+  <scm>
+    <connection>scm:svn:http://svn.sonatype.org/spice/tags/JErasure-0.1.0</connection>
+    <developerConnection>scm:svn:https://svn.sonatype.org/spice/tags/JErasure-0.1.0</developerConnection>
+    <url>http://svn.sonatype.org/spice/tags/JErasure-0.1.0</url>
+  </scm>
 </project>

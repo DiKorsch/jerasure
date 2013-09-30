@@ -136,7 +136,7 @@ public class Cauchy {
 
 	public static void printMatrix(Matrix matrix, int k, int m) {
 		if (matrix.size() != k * m) {
-			System.err.println("Die Matrix hat die falsche Größe!");
+			System.err.println("The Matrix has invalid size!");
 			return;
 		}
 		for (int row = 0; row < m; row++) {
