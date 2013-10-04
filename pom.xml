@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.uni-potsdam.hpi.jerasure</groupId>
   <artifactId>JErasure</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.0-SNAPSHOT</version>
 <!-- IMPORTANT! this is needed for deploy! -->
   <parent> 
     <groupId>org.sonatype.oss</groupId>
@@ -44,9 +44,15 @@
     </dependency>
   </dependencies>
 
-  <scm>
+  <!-- <scm>
     <connection>scm:svn:http://svn.sonatype.org/spice/tags/JErasure-0.1.0</connection>
     <developerConnection>scm:svn:https://svn.sonatype.org/spice/tags/JErasure-0.1.0</developerConnection>
     <url>http://svn.sonatype.org/spice/tags/JErasure-0.1.0</url>
+  </scm> -->
+
+  <scm>
+    <connection>scm:git:jerasure@svn.hpi.uni-potsdam.de:jerasure.git</connection>
+    <developerConnection>scm:git:jerasure@svn.hpi.uni-potsdam.de:jerasure.git</developerConnection>
+    <url>jerasure@svn.hpi.uni-potsdam.de:jerasure.git</url>
   </scm>
 </project>
