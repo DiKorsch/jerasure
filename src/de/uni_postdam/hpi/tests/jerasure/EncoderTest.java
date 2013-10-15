@@ -374,7 +374,7 @@ public class EncoderTest {
 				part_len += part.length();
 			}
 			
-			assertEquals(part_len, len + CalcUtils.calcOverHead(original.length(), k, w));
+			assertEquals(len + CalcUtils.calcOverHead(original.length(), k, w), part_len);
 			
 		} catch (IOException e) {
 			e.printStackTrace();

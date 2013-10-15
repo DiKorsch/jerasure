@@ -32,14 +32,15 @@ public class CodingUtils {
 	public static byte[] enOrDecode(byte[] data, Schedule[] schedules, int k, int m, int w, int packetSize){
 		int blockSize = CalcUtils.calcBlockSize(k, w, packetSize);
 		byte[] coding = CodingUtils.createCoding(blockSize, k, m);
-		return Schedule.do_scheduled_operations(data, coding, schedules, data.length, packetSize, w); 
+		return Schedule.do_scheduled_operations(data, coding, schedules, packetSize, w); 
 	}
 	
 	public static byte[] enOrDecode(Buffer data, Schedule[] schedules, int k,
 			int m, int w, int packetSize) {
-		
-		data.setEnd(CalcUtils.calcBlockSize(k, w, packetSize));
-		byte[] coding = CodingUtils.createCoding(data.size(), k, m);
+
+		int blockSize = CalcUtils.calcBlockSize(k, w, packetSize);
+		data.setLen(blockSize);
+		byte[] coding = CodingUtils.createCoding(blockSize, k, m);
 		return Schedule.do_scheduled_operations(data, coding, schedules, packetSize, w); 
 	}
 

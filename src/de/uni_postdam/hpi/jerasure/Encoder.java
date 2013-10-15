@@ -62,19 +62,19 @@ public class Encoder {
 			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
 			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
 
-//			Buffer newBuffer = new Buffer(bufferSize);
-			byte[] buffer = new byte[bufferSize];
+			Buffer newBuffer = new Buffer(bufferSize);
+//			byte[] buffer = new byte[bufferSize];
 			int numRead = 0;
 
 			Schedule[] schedules = Schedule.generate(k, m, w);
-			while ((numRead = fis.read(buffer)/*newBuffer.readFromStream(fis)*/) >= 0) {
+			while ((numRead = /*fis.read(buffer)*/newBuffer.readFromStream(fis)) >= 0) {
+				newBuffer.reset();
 				if (bufferSize != numRead) {
-//					newBuffer.setEnd(numRead);
-					buffer = Arrays.copyOf(buffer, numRead);
-					performLastReadEncoding(buffer, k_parts, m_parts, w,
-							schedules);
+					newBuffer.setEnd(numRead);
+//					buffer = Arrays.copyOf(buffer, numRead);
+					performLastReadEncoding(newBuffer, k_parts, m_parts, schedules);
 				} else {
-					performEncoding(buffer, k_parts, m_parts, w, schedules);
+					performEncoding(newBuffer, k_parts, m_parts, schedules);
 				}
 			}
 
@@ -102,6 +102,7 @@ public class Encoder {
 	}
 
 
+	@SuppressWarnings("unused")
 	private void performLastReadEncoding(byte[] buffer,
 			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w2,
 			Schedule[] schedules2) throws IOException {
@@ -116,8 +117,9 @@ public class Encoder {
 	}
 
 	private void performEncoding(Buffer buffer, FileOutputStream[] k_parts,
-			FileOutputStream[] m_parts, int w, Schedule[] schedules) throws IOException {
-		for (int i = 0; i < buffer.size() / blockSize; i++) {
+			FileOutputStream[] m_parts, Schedule[] schedules) throws IOException {
+		int bufferSize = buffer.size();
+		for (int i = 0; i < bufferSize / blockSize; i++) {
 			buffer.setStart(i * blockSize);
 			buffer.setEnd((i + 1) * blockSize);
 			encodeAndWrite(buffer, k_parts, m_parts);
@@ -126,18 +128,15 @@ public class Encoder {
 	}
 
 	private void performLastReadEncoding(Buffer buffer,
-			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
+			FileOutputStream[] k_parts, FileOutputStream[] m_parts,
 			Schedule[] schedules) throws IOException {
-		performEncoding(buffer, k_parts, m_parts, w, schedules);
-		int start = (buffer.size() / blockSize) * blockSize;
+		int bufferSize = buffer.size();
+		performEncoding(buffer, k_parts, m_parts, schedules);
+		int start = (bufferSize / blockSize) * blockSize;
 		int end = start + buffer.size() % blockSize;
-		if (start == 0) {
-			encodeAndWrite(buffer, k_parts, m_parts);
-		} else {
-			buffer.setStart(start);
-			buffer.setEnd(end);
-			encodeAndWrite(buffer, k_parts, m_parts);
-		}
+		buffer.setStart(start);
+		buffer.setEnd(end);
+		encodeAndWrite(buffer, k_parts, m_parts);
 	}
 
 	private void encodeAndWrite(Buffer data, FileOutputStream[] k_parts,

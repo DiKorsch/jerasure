@@ -117,8 +117,8 @@ public class Schedule {
 		return matrix.toSchedules(k, w);
 	}
 
-	public static byte[] do_scheduled_operations(byte[] data, byte[] coding, Schedule[] schedules, long dataSize, int packetSize, int w){
-		for (int done = 0; done < dataSize; done += packetSize * w) {
+	public static byte[] do_scheduled_operations(byte[] data, byte[] coding, Schedule[] schedules, int packetSize, int w){
+		for (int done = 0; done < data.length; done += packetSize * w) {
 			for (Schedule sched : schedules) {
 				coding = sched.operate(data, coding, packetSize, w);
 			}

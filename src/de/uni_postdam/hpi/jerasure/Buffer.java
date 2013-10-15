@@ -42,6 +42,10 @@ public class Buffer implements Iterable<Byte> {
 	public void setEnd(int end) {
 		this.end = end;
 	}
+	
+	public void setLen(int len){
+		this.end = this.start + len;
+	}
 
 	public void setData(byte[] data) {
 		this.data = data;
@@ -106,8 +110,8 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 
-	public void writeToStream(FileOutputStream destenation, int start2, int len) throws IOException {
-		destenation.write(data, start, len);		
+	public void writeToStream(FileOutputStream destenation, int offset, int len) throws IOException {
+		destenation.write(this.data, start + offset, len);
 	}
 
 }
