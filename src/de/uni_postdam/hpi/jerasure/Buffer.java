@@ -1,6 +1,7 @@
 package de.uni_postdam.hpi.jerasure;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -15,6 +16,11 @@ public class Buffer implements Iterable<Byte> {
 	public Buffer(int size) {
 		this.data = new byte[size];
 		this.end = size;
+	}
+
+	public Buffer(byte[] rawData) {
+		this(rawData.length);
+		this.data = rawData.clone();
 	}
 
 	public byte[] getData() {
@@ -66,6 +72,10 @@ public class Buffer implements Iterable<Byte> {
 	public void set(int idx, int i) {
 		this.set(idx, (byte) i);
 	}
+	
+	public int size() {
+		return end - start;
+	}
 
 	public Iterator<Byte> iterator() {
 
@@ -95,8 +105,9 @@ public class Buffer implements Iterable<Byte> {
 		return fis.read(this.data);
 	}
 
-	public int size() {
-		return end - start;
+
+	public void writeToStream(FileOutputStream destenation, int start2, int len) throws IOException {
+		destenation.write(data, start, len);		
 	}
 
 }

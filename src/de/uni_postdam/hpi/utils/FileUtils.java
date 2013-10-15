@@ -14,6 +14,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 
+import de.uni_postdam.hpi.jerasure.Buffer;
+
 
 public class FileUtils {
 
@@ -99,7 +101,7 @@ public class FileUtils {
 		}
 	}
 	
-	public static void writeParts(byte[] dataAndCoding,
+	public static void writeParts(byte[] data, byte[] coding,
 			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
 			int packetSize) throws IOException {
 		if (k_parts == null || m_parts == null) {
@@ -112,18 +114,46 @@ public class FileUtils {
 		int m = m_parts.length;
 	
 		for (int i = 0; i < k; i++) {
-			FileUtils.write(i, k_parts[i], dataAndCoding, w, packetSize);
+			FileUtils.write(i, k_parts[i], data, w, packetSize);
 		}
 	
 		for (int i = 0; i < m; i++) {
-			FileUtils.write(i + k, m_parts[i], dataAndCoding, w, packetSize);
+			FileUtils.write(i, m_parts[i], coding, w, packetSize);
 		}
 	}
 
+
+	public static void writeParts(Buffer data, byte[] coding,
+			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
+			int packetSize) throws IOException {
+		if (k_parts == null || m_parts == null) {
+			throw new IllegalArgumentException(
+					"one of the parts(or both) arrays was null: k=" + k_parts
+							+ " m=" + m_parts);
+		}
+	
+		int k = k_parts.length;
+		int m = m_parts.length;
+	
+		for (int i = 0; i < k; i++) {
+			FileUtils.write(i, k_parts[i], data, w, packetSize);
+		}
+	
+		for (int i = 0; i < m; i++) {
+			FileUtils.write(i, m_parts[i], coding, w, packetSize);
+		}		
+	}
+	
 	private static void write(int idx, FileOutputStream destenation,
-			byte[] dataAndCoding, int w, int packetSize) throws IOException {
+			byte[] data, int w, int packetSize) throws IOException {
 		int start = idx * w * packetSize;
-		destenation.write(dataAndCoding, start, w * packetSize);
+		destenation.write(data, start, w * packetSize);
+	}
+
+	private static void write(int idx, FileOutputStream destenation,
+			Buffer data, int w, int packetSize) throws IOException {
+		int start = idx * w * packetSize;
+		data.writeToStream(destenation, start, w * packetSize);
 	}
 
 	
@@ -283,5 +313,6 @@ public class FileUtils {
 		}
 		return true;
 	}
+
 
 }

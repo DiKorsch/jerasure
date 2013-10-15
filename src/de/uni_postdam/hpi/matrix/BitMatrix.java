@@ -69,7 +69,7 @@ public class BitMatrix extends Matrix{
 				if(this.get(col, row) == 1){
 					ops.add(new Schedule(op, 
 							col / w, col % w, 
-							k + row / w, row % w));
+							row / w, row % w));
 					op = OPERATION.XOR;
 				}
 			}

@@ -1,6 +1,7 @@
 package de.uni_postdam.hpi.matrix;
 
 import de.uni_postdam.hpi.cauchy.Cauchy;
+import de.uni_postdam.hpi.jerasure.Buffer;
 
 public class Schedule {
 	
@@ -49,33 +50,58 @@ public class Schedule {
 		return false;
 	}
 
-	
-	public byte[] operate(byte[] dataAndCoding, int packetSize, int w) {
+
+
+	public byte[] operate(Buffer data, byte[] coding, int packetSize, int w) {
 		int srcStart = computeSrcIdx(packetSize, w);
 		int destStart = computeDestIdx(packetSize, w);
 		if(operation == OPERATION.XOR){
-			return xor(dataAndCoding, srcStart, destStart, packetSize);
+			return xor(data, coding, srcStart, destStart, packetSize);
 		}else{
-			return copy(dataAndCoding, srcStart, destStart, packetSize);
+			return copy(data, coding, srcStart, destStart, packetSize);
 		}
+	}
+	
+	private byte[] copy(Buffer data, byte[] coding, int srcStart, int destStart, int packetSize) {
+		for(int i = 0; i < packetSize; i++){
+			coding[destStart + i] = data.get(srcStart + i); 
+		}
+		return coding;
+	}
+
+	private byte[] xor(Buffer data, byte[] coding, int srcStart, int destStart, int packetSize) {
+		for(int i = 0; i < packetSize; i++){
+			coding[destStart + i] ^= data.get(srcStart + i); 
+		}
+		return coding;
+	}
+
+
+	public byte[] operate(byte[] data, byte[] coding, int packetSize, int w) {
+		int srcStart = computeSrcIdx(packetSize, w);
+		int destStart = computeDestIdx(packetSize, w);
+		if(operation == OPERATION.XOR){
+			return xor(data, coding, srcStart, destStart, packetSize);
+		}else{
+			return copy(data, coding, srcStart, destStart, packetSize);
+		}
+	}
+	
+	private byte[] copy(byte[] data, byte[] coding, int srcStart, int destStart, int packetSize) {
+		
+		for(int i = 0; i < packetSize; i++){
+			coding[destStart + i] = data[srcStart + i]; 
+		}
+		return coding;
 
 	}
 
-	private byte[] copy(byte[] dataAndCoding, int srcStart, int destStart, int packetSize) {
+	private byte[] xor(byte[] data, byte[] coding, int srcStart, int destStart, int packetSize) {
 		
 		for(int i = 0; i < packetSize; i++){
-			dataAndCoding[destStart + i] = dataAndCoding[srcStart + i]; 
+			coding[destStart + i] ^= data[srcStart + i]; 
 		}
-		return dataAndCoding;
-
-	}
-
-	private byte[] xor(byte[] dataAndCoding, int srcStart, int destStart, int packetSize) {
-		
-		for(int i = 0; i < packetSize; i++){
-			dataAndCoding[destStart + i] ^= dataAndCoding[srcStart + i]; 
-		}
-		return dataAndCoding;
+		return coding;
 	}
 
 	private int computeSrcIdx(int packetSize, int w){
@@ -91,14 +117,26 @@ public class Schedule {
 		return matrix.toSchedules(k, w);
 	}
 
-	public static byte[] do_scheduled_operations(byte[] dataAndCoding, Schedule[] schedules, long dataSize, int packetSize, int w){
+	public static byte[] do_scheduled_operations(byte[] data, byte[] coding, Schedule[] schedules, long dataSize, int packetSize, int w){
 		for (int done = 0; done < dataSize; done += packetSize * w) {
 			for (Schedule sched : schedules) {
-				dataAndCoding = sched.operate(dataAndCoding, packetSize, w);
+				coding = sched.operate(data, coding, packetSize, w);
 			}
 		}
-		return dataAndCoding;
+		return coding;
 	}
+	
+
+	public static byte[] do_scheduled_operations(Buffer data,
+			byte[] coding, Schedule[] schedules, int packetSize, int w) {
+		for (int done = 0; done < data.size(); done += packetSize * w) {
+			for (Schedule sched : schedules) {
+				coding = sched.operate(data, coding, packetSize, w);
+			}
+		}
+		return coding;
+	}
+
 }
 
 
