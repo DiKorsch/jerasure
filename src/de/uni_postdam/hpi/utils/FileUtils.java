@@ -97,7 +97,7 @@ public class FileUtils {
 	public static void writeRestored(byte[] restored, FileOutputStream[] missing, int k, int w, int packetSize) throws IOException{
 		
 		for (int i = 0; i < missing.length; i++) {
-			FileUtils.write(i + k, missing[i], restored, w, packetSize);
+			FileUtils.write(i, missing[i], restored, w, packetSize);
 		}
 	}
 	

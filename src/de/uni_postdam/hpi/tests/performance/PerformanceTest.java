@@ -23,7 +23,7 @@ public class PerformanceTest {
 		500 * KB,  
 		1 * MB,
 		10 * MB,
-		100 * MB,
+//		100 * MB,
 //		1 * GB,
 	};
 

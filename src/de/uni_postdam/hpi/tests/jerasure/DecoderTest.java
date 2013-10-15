@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.google.common.io.Files;
 
+import de.uni_postdam.hpi.jerasure.Buffer;
 import de.uni_postdam.hpi.jerasure.Decoder;
 import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.matrix.BitMatrix;
@@ -101,12 +102,6 @@ public class DecoderTest {
 				0x22, (byte) 0x97, 0x2e, 0x15, };
 		
 		should = new byte[]{ 
-				// m1
-				0x70, 0x47, 0x39, (byte) 0xb7,
-				// k2
-				0x52, (byte) 0xf6, 0x09, (byte) 0x85, 
-				// k3
-				0x22, (byte) 0x97, 0x2e, 0x15, 
 				// k1 < restored values
 				0x00, 0x26, 0x1e, 0x27,  
 				};
@@ -132,6 +127,50 @@ public class DecoderTest {
 				0x16, (byte) 0xdd, 0x6d, (byte) 0xc4,
 		};
 		should = new byte[]{
+				// k1
+				0x00, 0x26, 0x1e, 0x27,
+				0x52, (byte) 0xf6, 0x09, (byte) 0x85,
+		};
+
+		missing = new Decoder(f, k, m, w).decode(data, packetSize);
+		
+		assertArrayEquals(should, missing);
+		
+	}
+	
+	@Test
+	public void test_decoding_packet_as_buffer() throws NoSuchAlgorithmException, IOException{
+		Buffer data = null;
+		byte[] should = null;
+		byte[] missing = null;
+		int packetSize = 0;
+		k = 3; m = 1; 
+		File f = getFile("someFile");
+		m_of_k_parts_missing(f);
+
+		data = new Buffer(new byte[]{
+				// m1 < k1 is missing!
+				0x70, 0x47, 0x39, (byte) 0xb7, 
+				// k2 
+				0x52, (byte) 0xf6, 0x09, (byte) 0x85, 
+				// k3 
+				0x22, (byte) 0x97, 0x2e, 0x15});
+		
+		should = new byte[]{ 
+				// k1 < restored values
+				0x00, 0x26, 0x1e, 0x27,  
+				};
+		
+		w = 2; 
+		packetSize = 2;
+		missing = new Decoder(f, k, m, w).decode(data, packetSize);
+		
+		assertArrayEquals(should, missing);
+		
+		
+		w = 4; 
+		packetSize = 2;
+		data = new Buffer(new byte[]{
 				// m1
 				0x0a, 0x63, 0x47, (byte) 0xa6,
 				0x64, (byte) 0x86, 0x1a, 0x5c,
@@ -141,6 +180,8 @@ public class DecoderTest {
 				// k3				
 				0x28, (byte) 0xd2, 0x77, (byte) 0x94,
 				0x16, (byte) 0xdd, 0x6d, (byte) 0xc4,
+		});
+		should = new byte[]{
 				// k1
 				0x00, 0x26, 0x1e, 0x27,
 				0x52, (byte) 0xf6, 0x09, (byte) 0x85,

@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -69,6 +68,14 @@ public class Decoder {
 		}
 		return CodingUtils.enOrDecode(data, schedules, k, m, w, packetSize);
 	}
+	
+
+	public byte[] decode(Buffer data, int packetSize) {
+		if(schedules == null){
+			generateSchedules();
+		}
+		return CodingUtils.enOrDecode(data, schedules, k, m, w, packetSize);
+	}
 
 	
 	private void updateErasures(){
@@ -124,7 +131,7 @@ public class Decoder {
 			int bytesWritten = 0;
 			while (bytesWritten < originalFileSize) {
 				int bytesToWrite = (int) Math.min(bufferSize, originalFileSize - bytesWritten);
-				byte[] buffer = null;
+				Buffer buffer = null;
 				if(bytesToWrite != bufferSize){
 					buffer = read_from_parts(parts, blockSize); 
 				} else {
@@ -156,7 +163,7 @@ public class Decoder {
 			int bytesWritten = 0;
 			while (bytesWritten < originalFileSize) {
 				int bytesToWrite = (int) Math.min(bufferSize, originalFileSize - bytesWritten);
-				buffer = read_from_parts(parts, bytesToWrite);
+				buffer = read_from_parts_old(parts, bytesToWrite);
 				f.write(buffer);
 				bytesWritten += bytesToWrite;
 			}
@@ -177,19 +184,38 @@ public class Decoder {
 		
 	}
 
+	/*
 	private void performDecoding(byte[] buffer,
 			FileOutputStream[] missing_parts) throws IOException {
 		for (int i = 0; i < buffer.length / blockSize; i++) {
 			decodeAndWrite(Arrays.copyOfRange(buffer, i * blockSize, (i+1) * blockSize), missing_parts);
 		}
 	}
-	
+
 	private void decodeAndWrite(byte[] data, 
 			FileOutputStream[] missing_parts) throws IOException{
 		byte[] restored = decode(data, packetSize);
 		FileUtils.writeRestored(restored, missing_parts, k, w, packetSize);
 	}
+	 */
+
+	private void performDecoding(Buffer buffer,
+			FileOutputStream[] missing_parts) throws IOException {
+		int bufferSize = buffer.size();
+		for (int i = 0; i < bufferSize / blockSize; i++) {
+			buffer.setStart(i * blockSize);
+			buffer.setEnd((i + 1) * blockSize);
+			decodeAndWrite(buffer, missing_parts);
+		}
+	}
+
+
+	private void decodeAndWrite(Buffer data, FileOutputStream[] missing_parts) throws IOException {
+		byte[] restored = decode(data, packetSize);
+		FileUtils.writeRestored(restored, missing_parts, k, w, packetSize);
+	}
 	
+
 	private SortedMap<Integer, FileInputStream> orderParts(File[] parts, String partSuffix) throws FileNotFoundException{
 		SortedMap<Integer, FileInputStream> result = new TreeMap<Integer, FileInputStream>();
 		for(File part: parts){
@@ -239,10 +265,31 @@ public class Decoder {
 	}
 
 
-	private byte[] read_from_parts(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException {
+	private Buffer read_from_parts(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException {
 		
 		if(bytesToRead < blockSize){
 			return read_last_bytes(parts, bytesToRead);
+		}
+		
+		Buffer result = new Buffer(bytesToRead);
+		int c = 0;
+		for(int i = 0; i < bytesToRead / blockSize; i++){
+			
+			for(FileInputStream part_fos: parts.values()){
+				byte[] packet = new byte[packetSize * w];
+				part_fos.read(packet);
+				for(byte b: packet){
+					result.set(c++, b);
+				}
+			}
+		}
+		return result;
+	}
+	
+	private byte[] read_from_parts_old(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException {
+		
+		if(bytesToRead < blockSize){
+			return read_last_bytes_old(parts, bytesToRead);
 		}
 		
 		byte[] result = new byte[bytesToRead];
@@ -260,7 +307,24 @@ public class Decoder {
 		return result;
 	}
 	
-	private byte[] read_last_bytes(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException{
+	private Buffer read_last_bytes(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException{
+		Buffer result = new Buffer(bytesToRead);
+		int c = 0;
+		
+		for(FileInputStream part_fos: parts.values()){
+			byte[] packet = new byte[packetSize * w];
+			if(part_fos.read(packet) != -1){
+				for(byte b: packet){
+					result.set(c++, b);
+					if(c == bytesToRead) 
+						return result;
+				}
+			}
+		}
+		return result;
+	}
+	
+	private byte[] read_last_bytes_old(SortedMap<Integer, FileInputStream> parts, int bytesToRead) throws IOException{
 		byte[] result = new byte[bytesToRead];
 		int c = 0;
 		
