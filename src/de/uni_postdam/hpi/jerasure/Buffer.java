@@ -1,5 +1,7 @@
 package de.uni_postdam.hpi.jerasure;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Iterator;
 
 public class Buffer implements Iterable<Byte> {
@@ -7,6 +9,8 @@ public class Buffer implements Iterable<Byte> {
 	private byte[] data = null;
 	private int start = 0;
 	private int end = -1;
+	
+	byte defaultValue = 0;
 
 	public Buffer(int size) {
 		this.data = new byte[size];
@@ -36,6 +40,10 @@ public class Buffer implements Iterable<Byte> {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
+	
+	public void setDefaultValue(byte val){
+		this.defaultValue = val;
+	}
 
 	public void reset() {
 		this.start = 0;
@@ -44,7 +52,7 @@ public class Buffer implements Iterable<Byte> {
 
 	public boolean isValid() {
 
-		return false;
+		return this.size() > 0;
 	}
 
 	public void set(int idx, byte value) {
@@ -69,7 +77,10 @@ public class Buffer implements Iterable<Byte> {
 			}
 
 			public Byte next() {
-				Byte val = data[idx + start];
+				Byte val = 0;
+				if (idx+start < data.length){
+					val = data[idx + start];
+				}
 				idx++;
 				return val;
 			}
@@ -78,6 +89,14 @@ public class Buffer implements Iterable<Byte> {
 				throw new UnsupportedOperationException();
 			}
 		};
+	}
+
+	public int readFromStream(FileInputStream fis) throws IOException {
+		return fis.read(this.data);
+	}
+
+	public int size() {
+		return end - start;
 	}
 
 }
