@@ -20,7 +20,7 @@ public class Buffer implements Iterable<Byte> {
 
 	public Buffer(byte[] rawData) {
 		this(rawData.length);
-		this.data = rawData.clone();
+		this.data = rawData;//.clone();
 	}
 
 	public byte[] getData() {
@@ -116,7 +116,6 @@ public class Buffer implements Iterable<Byte> {
 
 	public void xor(int idx, byte otherValue) {
 		this.set(idx, this.get(idx) ^ otherValue);
-		
 	}
 
 	public void setRange(int start, int len) {

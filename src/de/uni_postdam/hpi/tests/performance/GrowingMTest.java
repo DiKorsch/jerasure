@@ -1,5 +1,7 @@
 package de.uni_postdam.hpi.tests.performance;
 
+import static de.uni_postdam.hpi.utils.FileUtils.MB;
+
 import java.io.File;
 
 import org.junit.Test;
@@ -8,15 +10,12 @@ import de.uni_postdam.hpi.jerasure.Decoder;
 import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.matrix.Schedule;
 
-import static de.uni_postdam.hpi.utils.FileUtils.*;
-
-public class GrowingKTest extends BasePerfTest{
-
-	String fileName = "10mb";
-	long fileSize = 10 * MB;
+public class GrowingMTest extends BasePerfTest {
+	String fileName = "100mb";
+	long fileSize = 100 * MB;
 	
-	int min_k = 5, max_k = 100;
-	int m = 2, w = 8;
+	int min_m = 1, max_m = 10;
+	int k = 10, w = 8;
 	
 	@Test
 	public void test() {
@@ -25,7 +24,7 @@ public class GrowingKTest extends BasePerfTest{
 		cleanAndCreateFile(f, fileSize);
 		long t1, t2, size = f.length();
 		
-		for(int k = min_k; k <= max_k; k+=5) {
+		for(int m = min_m; m <= max_m; m++) {
 			String out = "";
 
 			Schedule.copyCount = 0;
@@ -53,5 +52,4 @@ public class GrowingKTest extends BasePerfTest{
 		}
 	
 	}
-
 }
