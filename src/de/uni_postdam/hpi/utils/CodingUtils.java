@@ -41,7 +41,7 @@ public class CodingUtils {
 		int blockSize = CalcUtils.calcBlockSize(k, w, packetSize);
 		data.setLen(blockSize);
 		byte[] coding = CodingUtils.createCoding(blockSize, k, m);
-		return Schedule.do_scheduled_operations(data, coding, schedules, packetSize, w); 
+		return Schedule.do_scheduled_operations(data, coding, schedules, packetSize, w);
 	}
 
 }

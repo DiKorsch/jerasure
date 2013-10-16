@@ -36,6 +36,10 @@ public class CalcUtils {
 	public static int calcBlockSize(int k, int w, int packetSize){
 		return k * w * packetSize;
 	}
+	
+	public static int calcCodingBlockSize(int m, int w, int packetSize){
+		return m * w * packetSize;
+	}
 
 	public static int calcOverHead(long size, int k, int w){
 		int bufferSize, packetSize, blockSize;

@@ -51,6 +51,26 @@ public class Schedule {
 	}
 
 
+	private void operate(Buffer data, Buffer coding, int packetSize,
+			int w) {
+		int srcStart = computeSrcIdx(packetSize, w);
+		int destStart = computeDestIdx(packetSize, w);
+		if(operation == OPERATION.XOR){
+			xor(data, coding, srcStart, destStart, packetSize);
+		}else{
+			copy(data, coding, srcStart, destStart, packetSize);
+		}
+	}
+
+	public byte[] operate(byte[] data, byte[] coding, int packetSize, int w) {
+		int srcStart = computeSrcIdx(packetSize, w);
+		int destStart = computeDestIdx(packetSize, w);
+		if(operation == OPERATION.XOR){
+			return xor(data, coding, srcStart, destStart, packetSize);
+		}else{
+			return copy(data, coding, srcStart, destStart, packetSize);
+		}
+	}
 
 	public byte[] operate(Buffer data, byte[] coding, int packetSize, int w) {
 		int srcStart = computeSrcIdx(packetSize, w);
@@ -59,6 +79,20 @@ public class Schedule {
 			return xor(data, coding, srcStart, destStart, packetSize);
 		}else{
 			return copy(data, coding, srcStart, destStart, packetSize);
+		}
+	}
+	
+	private void copy(Buffer data, Buffer coding, int srcStart,
+			int destStart, int packetSize) {
+		for(int i = 0; i < packetSize; i++){
+			coding.set(destStart + i, data.get(srcStart + i)); 
+		}
+	}
+
+	private void xor(Buffer data, Buffer coding, int srcStart, int destStart,
+			int packetSize) {
+		for(int i = 0; i < packetSize; i++){
+			coding.xor(destStart + i, data.get(srcStart + i)); 
 		}
 	}
 	
@@ -77,15 +111,6 @@ public class Schedule {
 	}
 
 
-	public byte[] operate(byte[] data, byte[] coding, int packetSize, int w) {
-		int srcStart = computeSrcIdx(packetSize, w);
-		int destStart = computeDestIdx(packetSize, w);
-		if(operation == OPERATION.XOR){
-			return xor(data, coding, srcStart, destStart, packetSize);
-		}else{
-			return copy(data, coding, srcStart, destStart, packetSize);
-		}
-	}
 	
 	private byte[] copy(byte[] data, byte[] coding, int srcStart, int destStart, int packetSize) {
 		
@@ -135,6 +160,15 @@ public class Schedule {
 			}
 		}
 		return coding;
+	}
+
+	public static void do_scheduled_operations(Buffer data,
+			Buffer codingBuffer, Schedule[] schedules, int packetSize, int w) {
+		for (int done = 0; done < data.size(); done += packetSize * w) {
+			for (Schedule sched : schedules) {
+				sched.operate(data, codingBuffer, packetSize, w);
+			}
+		}
 	}
 
 }

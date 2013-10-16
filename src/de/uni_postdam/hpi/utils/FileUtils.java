@@ -123,6 +123,39 @@ public class FileUtils {
 	}
 
 
+	public static void writeParts(Buffer data, Buffer coding,
+			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
+			int packetSize) throws IOException {
+		if (k_parts == null || m_parts == null) {
+			throw new IllegalArgumentException(
+					"one of the parts(or both) arrays was null: k=" + k_parts
+							+ " m=" + m_parts);
+		}
+	
+		int k = k_parts.length;
+		int m = m_parts.length;
+	
+		int blockSize = w * packetSize * k;
+		int len = w * packetSize;
+		
+		for(int j = 0; j < data.size() / blockSize; j++){
+			for (int i = 0; i < k; i++) {
+				int start = (j * k + i) *  len;
+				data.writeToStream(k_parts[i], start, len);
+			}
+		}
+		
+		blockSize = w * packetSize * m;
+		for(int j = 0; j < coding.size() / blockSize ; j++){
+					
+			for (int i = 0; i < m; i++) {
+
+				int start = (j * m + i) *  len;
+				coding.writeToStream(m_parts[i], start, len);
+			}
+		}
+	}
+
 	public static void writeParts(Buffer data, byte[] coding,
 			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
 			int packetSize) throws IOException {

@@ -70,7 +70,12 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 	public byte get(int idx) {
-		return this.data[idx + start];
+		int id = idx + start;
+		if(id < data.length){
+			return this.data[idx + start];
+		} else {
+			return this.defaultValue;
+		}
 	}
 
 	public void set(int idx, int i) {
@@ -112,6 +117,11 @@ public class Buffer implements Iterable<Byte> {
 
 	public void writeToStream(FileOutputStream destenation, int offset, int len) throws IOException {
 		destenation.write(this.data, start + offset, len);
+	}
+
+	public void xor(int idx, byte otherValue) {
+		this.set(idx, this.get(idx) ^ otherValue);
+		
 	}
 
 }
