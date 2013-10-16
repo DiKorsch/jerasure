@@ -143,10 +143,8 @@ public class Schedule {
 	}
 
 	public static byte[] do_scheduled_operations(byte[] data, byte[] coding, Schedule[] schedules, int packetSize, int w){
-		for (int done = 0; done < data.length; done += packetSize * w) {
-			for (Schedule sched : schedules) {
-				coding = sched.operate(data, coding, packetSize, w);
-			}
+		for (Schedule sched : schedules) {
+			coding = sched.operate(data, coding, packetSize, w);
 		}
 		return coding;
 	}
@@ -154,20 +152,16 @@ public class Schedule {
 
 	public static byte[] do_scheduled_operations(Buffer data,
 			byte[] coding, Schedule[] schedules, int packetSize, int w) {
-		for (int done = 0; done < data.size(); done += packetSize * w) {
-			for (Schedule sched : schedules) {
-				coding = sched.operate(data, coding, packetSize, w);
-			}
+		for (Schedule sched : schedules) {
+			coding = sched.operate(data, coding, packetSize, w);
 		}
 		return coding;
 	}
 
 	public static void do_scheduled_operations(Buffer data,
 			Buffer codingBuffer, Schedule[] schedules, int packetSize, int w) {
-		for (int done = 0; done < data.size(); done += packetSize * w) {
-			for (Schedule sched : schedules) {
-				sched.operate(data, codingBuffer, packetSize, w);
-			}
+		for (Schedule sched : schedules) {
+			sched.operate(data, codingBuffer, packetSize, w);
 		}
 	}
 

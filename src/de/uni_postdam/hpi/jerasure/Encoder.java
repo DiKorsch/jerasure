@@ -124,31 +124,16 @@ public class Encoder {
 			while ((numRead = data.readFromStream(fis)) >= 0) {
 				data.reset();
 				coding.reset();
-
-				for (int i = 0; i < bufferSize / blockSize; i++) {
-					data.setStart(i * blockSize);
-					data.setLen(blockSize);
-					
-					coding.setStart(i * codingBlockSize);
-					coding.setLen(codingBlockSize);
-					
-					encode(data, coding);
-				}
 				
+				performEncoding(data, coding);
 				// encode last blocks
 				if (bufferSize != numRead) {
-					data.setStart(numRead / blockSize * blockSize);
-					data.setLen(numRead % blockSize);
-					
-					coding.setStart(numRead / blockSize * codingBlockSize);
-					coding.setLen(numRead % blockSize);
-					
-					encode(data, coding);
+					performLastReadEncoding(data, coding, numRead);
 				}
 
 				data.setStart(0);
 				coding.setStart(0);
-
+				
 				FileUtils.writeParts(data, coding, k_parts, m_parts, w, packetSize);
 			}
 		} catch (FileNotFoundException e) {
@@ -199,6 +184,24 @@ public class Encoder {
 	
 	*/
 
+	private void performLastReadEncoding(Buffer data, Buffer coding, int numRead) {
+
+		data.setRange(numRead / blockSize * blockSize, numRead % blockSize);
+		coding.setRange(numRead / blockSize * codingBlockSize, numRead % blockSize);
+		
+		encode(data, coding);		
+	}
+
+	private void performEncoding(Buffer data, Buffer coding) {
+		int steps = bufferSize / blockSize;
+		for (int i = 0; i < steps; i++) {
+			data.setRange(i * blockSize, blockSize);
+			coding.setRange(i * codingBlockSize, codingBlockSize);
+			
+			encode(data, coding);
+		}	
+	}
+
 	private void performEncoding(Buffer buffer, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts) throws IOException {
 		int bufferSize = buffer.size();
@@ -225,15 +228,8 @@ public class Encoder {
 
 	private void encodeAndWrite(Buffer data, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts) throws IOException {
-		long t1 = System.currentTimeMillis();
 		byte[] coding = encode(data, packetSize);
-		long t2 = System.currentTimeMillis();
-		System.out.print("encode in " + (t2-t1) + "\t");
-		
-		t1 = System.currentTimeMillis();
 		FileUtils.writeParts(data, coding, k_parts, m_parts, w, packetSize);
-		t2 = System.currentTimeMillis();
-		System.out.println("write in " + (t2-t1));
 	}
 
 }

@@ -124,4 +124,9 @@ public class Buffer implements Iterable<Byte> {
 		
 	}
 
+	public void setRange(int start, int len) {
+		this.start = start;
+		this.end = start + len;
+	}
+
 }
