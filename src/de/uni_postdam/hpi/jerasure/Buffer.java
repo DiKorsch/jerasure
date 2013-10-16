@@ -70,16 +70,11 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 	public byte get(int idx) {
-		int id = idx + start;
-		if(id < data.length){
-			return this.data[idx + start];
-		} else {
-			return this.defaultValue;
-		}
+		return this.data[idx + start];
 	}
 
 	public void set(int idx, int i) {
-		this.set(idx, (byte) i);
+		this.data[idx + start] = (byte) i;
 	}
 	
 	public int size() {

@@ -58,50 +58,7 @@ public class Encoder {
 		codingBlockSize = CalcUtils.calcCodingBlockSize(m, w, packetSize);
 	}
 
-	public void encode2(File file) {
-		if (!file.exists()) {
-			throw new IllegalArgumentException("File " + file.getAbsolutePath()
-					+ " does not exist!");
-		}
-		FileInputStream fis = null;
-		FileOutputStream[] k_parts = null;
-		FileOutputStream[] m_parts = null;
 
-		try {
-			fis = new FileInputStream(file);
-			calcSizes(file.length());
-//			System.out.print("buffer:" + bufferSize + "\t");
-//			System.out.print("block:" + blockSize + "\t");
-//			System.out.println("packet:" + packetSize + "\t");
-			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
-			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
-			Buffer newBuffer = new Buffer(bufferSize);
-			int numRead = 0;
-
-			while ((numRead = newBuffer.readFromStream(fis)) >= 0) {
-				newBuffer.reset();
-				if (bufferSize != numRead) {
-					newBuffer.setEnd(numRead);
-					performLastReadEncoding(newBuffer, k_parts, m_parts);
-				} else {
-					performEncoding(newBuffer, k_parts, m_parts);
-				}
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			FileUtils.close(k_parts);
-			FileUtils.close(m_parts);
-		}
-
-	}
 	
 	public void encode(File file) {
 		if (!file.exists()) {
@@ -111,10 +68,13 @@ public class Encoder {
 		FileInputStream fis = null;
 		FileOutputStream[] k_parts = null;
 		FileOutputStream[] m_parts = null;
-
+		
 		try {
 			fis = new FileInputStream(file);
 			calcSizes(file.length());
+//			System.out.print("buffer:" + bufferSize + "\t");
+//			System.out.print("block:" + blockSize + "\t");
+//			System.out.println("packet:" + packetSize + "\t");
 			k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
 			m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
 			Buffer data = new Buffer(bufferSize);
@@ -151,7 +111,69 @@ public class Encoder {
 		}
 
 	}
-	/*
+
+	private void performLastReadEncoding(Buffer data, Buffer coding, int numRead) {
+
+		data.setRange(numRead / blockSize * blockSize, numRead % blockSize);
+		coding.setRange(numRead / blockSize * codingBlockSize, numRead % blockSize);
+		
+		encode(data, coding);		
+	}
+
+	private void performEncoding(Buffer data, Buffer coding) {
+		int steps = bufferSize / blockSize;
+		for (int i = 0; i < steps; i++) {
+			data.setRange(i * blockSize, blockSize);
+			coding.setRange(i * codingBlockSize, codingBlockSize);
+			
+			encode(data, coding);
+		}	
+	}
+	
+/*	public void encode2(File file) {
+	if (!file.exists()) {
+		throw new IllegalArgumentException("File " + file.getAbsolutePath()
+				+ " does not exist!");
+	}
+	FileInputStream fis = null;
+	FileOutputStream[] k_parts = null;
+	FileOutputStream[] m_parts = null;
+
+	try {
+		fis = new FileInputStream(file);
+		calcSizes(file.length());
+		//	System.out.print("buffer:" + bufferSize + "\t");
+		//	System.out.print("block:" + blockSize + "\t");
+		//	System.out.println("packet:" + packetSize + "\t");
+		k_parts = FileUtils.createParts(file.getAbsolutePath(), "k", k);
+		m_parts = FileUtils.createParts(file.getAbsolutePath(), "m", m);
+		Buffer newBuffer = new Buffer(bufferSize);
+		int numRead = 0;
+
+		while ((numRead = newBuffer.readFromStream(fis)) >= 0) {
+			newBuffer.reset();
+			if (bufferSize != numRead) {
+				newBuffer.setEnd(numRead);
+				performLastReadEncoding(newBuffer, k_parts, m_parts);
+			} else {
+				performEncoding(newBuffer, k_parts, m_parts);
+			}
+		}
+	} catch (FileNotFoundException e) {
+		e.printStackTrace();
+	} catch (IOException e) {
+		e.printStackTrace();
+	} finally {
+		try {
+			fis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		FileUtils.close(k_parts);
+		FileUtils.close(m_parts);
+	}
+
+}
 	private void performEncoding(byte[] buffer, FileOutputStream[] k_parts,
 			FileOutputStream[] m_parts, int w2, Schedule[] schedules2) throws IOException {
 		for (int i = 0; i < buffer.length / blockSize; i++) {
@@ -180,26 +202,6 @@ public class Encoder {
 		byte[] coding = encode(data, packetSize);
 		FileUtils.writeParts(data, coding, k_parts, m_parts, w, packetSize);
 
-	}
-	
-	*/
-
-	private void performLastReadEncoding(Buffer data, Buffer coding, int numRead) {
-
-		data.setRange(numRead / blockSize * blockSize, numRead % blockSize);
-		coding.setRange(numRead / blockSize * codingBlockSize, numRead % blockSize);
-		
-		encode(data, coding);		
-	}
-
-	private void performEncoding(Buffer data, Buffer coding) {
-		int steps = bufferSize / blockSize;
-		for (int i = 0; i < steps; i++) {
-			data.setRange(i * blockSize, blockSize);
-			coding.setRange(i * codingBlockSize, codingBlockSize);
-			
-			encode(data, coding);
-		}	
 	}
 
 	private void performEncoding(Buffer buffer, FileOutputStream[] k_parts,
@@ -231,5 +233,5 @@ public class Encoder {
 		byte[] coding = encode(data, packetSize);
 		FileUtils.writeParts(data, coding, k_parts, m_parts, w, packetSize);
 	}
-
+	*/
 }

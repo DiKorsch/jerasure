@@ -320,55 +320,6 @@ public class EncoderTest {
 	}
 
 	@Test
-	public void test_encoding_packet_as_not_full_buffer (){
-		int k, m, w, packetSize;
-		byte[] should = null;
-		Buffer coding = null;
-		Buffer data = null;
-
-		k = 2; m = 1; w = 4; packetSize = 1;
-
-		data = new Buffer(new byte[]{
-				// k1
-				0, 1, 2, 3, 
-				// k2 
-				4, 5 /* the rest is missing and should be assumed as 0 */});
-		should = new byte[]{ 
-				// m1
-				4, 4, 2, 3 };
-		
-		coding = new Buffer(4);
-		
-		new Encoder(k, m, w).encode(data, coding, packetSize);
-		
-		assertArrayEquals(should, coding.getData());
-		
-		
-		k = 3; m = 2; w = 4; packetSize = 1;
-
-		data = new Buffer(new byte[]{
-				// k1
-				0, 1, 2, 3, 
-				// k2 
-				4, 5, 6, 7 
-				// k3
-				/* the rest is missing and should be assumed as 0 */});
-		should = new byte[]{ 
-				// m1
-				4, 4, 4, 4, 
-				// m2
-				7, 2, 7, 5
-				};
-				
-		coding = new Buffer(8);
-		
-		new Encoder(k, m, w).encode(data, coding, packetSize);
-		
-		assertArrayEquals(should, coding.getData());
-		
-	}
-	
-	@Test
 	public void test_encode_small_file(){
 		int k,m,w;
 		File original = null;

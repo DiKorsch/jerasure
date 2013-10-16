@@ -4,6 +4,9 @@ import de.uni_postdam.hpi.cauchy.Cauchy;
 import de.uni_postdam.hpi.jerasure.Buffer;
 
 public class Schedule {
+
+	public static long xorCount = 0;
+	public static long copyCount = 0;
 	
 	public enum OPERATION{
 		COPY,
@@ -85,8 +88,9 @@ public class Schedule {
 	private void copy(Buffer data, Buffer coding, int srcStart,
 			int destStart, int packetSize) {
 		for(int i = 0; i < packetSize; i++){
-			coding.set(destStart + i, data.get(srcStart + i)); 
+			coding.set(destStart + i, data.get(srcStart + i));
 		}
+		copyCount++;
 	}
 
 	private void xor(Buffer data, Buffer coding, int srcStart, int destStart,
@@ -94,6 +98,7 @@ public class Schedule {
 		for(int i = 0; i < packetSize; i++){
 			coding.xor(destStart + i, data.get(srcStart + i)); 
 		}
+		xorCount++;
 	}
 	
 	private byte[] copy(Buffer data, byte[] coding, int srcStart, int destStart, int packetSize) {
@@ -130,11 +135,11 @@ public class Schedule {
 	}
 
 	private int computeSrcIdx(int packetSize, int w){
-		return this.sourceId * packetSize * w + this.sourceBit * packetSize;
+		return (this.sourceId * w + this.sourceBit) * packetSize;
 	}
 	
 	private int computeDestIdx(int packetSize, int w){
-		return this.destinationId * packetSize * w + this.destinationBit * packetSize;
+		return (this.destinationId * w + this.destinationBit) * packetSize;
 	}
 	
 	public static Schedule[] generate(int k, int m, int w){
@@ -159,9 +164,9 @@ public class Schedule {
 	}
 
 	public static void do_scheduled_operations(Buffer data,
-			Buffer codingBuffer, Schedule[] schedules, int packetSize, int w) {
+			Buffer coding, Schedule[] schedules, int packetSize, int w) {
 		for (Schedule sched : schedules) {
-			sched.operate(data, codingBuffer, packetSize, w);
+			sched.operate(data, coding, packetSize, w);
 		}
 	}
 
