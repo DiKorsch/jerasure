@@ -3,7 +3,7 @@ package de.uni_postdam.hpi.jerasure;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.*;
 
 public class Buffer implements Iterable<Byte> {
 
@@ -11,28 +11,35 @@ public class Buffer implements Iterable<Byte> {
 	private int start = 0;
 	private int end = -1;
 	
+	private long threadId = 0;
+
 	byte defaultValue = 0;
 
 	public Buffer(int size) {
-		this.data = new byte[size];
-		this.end = size;
+		this.threadId = Thread.currentThread().getId();
+		this.setData(new byte[size]);
+		this.setEnd(size);
 	}
 
 	public Buffer(byte[] rawData) {
 		this(rawData.length);
-		this.data = rawData;//.clone();
+		this.setData(rawData);
+	}
+	
+	public void setCurrentThread(long threadId){
+		this.threadId = threadId;
 	}
 
 	public byte[] getData() {
-		return this.data;
+		return data;
 	}
 
 	public int getStart() {
-		return this.start;
+		return start;
 	}
 
 	public int getEnd() {
-		return this.end;
+		return end;
 	}
 
 	public void setStart(int start) {
@@ -44,7 +51,7 @@ public class Buffer implements Iterable<Byte> {
 	}
 	
 	public void setLen(int len){
-		this.end = this.start + len;
+		this.setEnd(this.getStart() + len);
 	}
 
 	public void setData(byte[] data) {
@@ -56,8 +63,8 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 	public void reset() {
-		this.start = 0;
-		this.end = this.data.length;
+		this.setStart(0);
+		this.setEnd(data.length);
 	}
 
 	public boolean isValid() {
@@ -66,19 +73,19 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 	public void set(int idx, byte value) {
-		this.data[idx + start] = value;
+		data[idx + getStart()] = value;
 	}
 
 	public byte get(int idx) {
-		return this.data[idx + start];
+		return data[idx + getStart()];
 	}
 
 	public void set(int idx, int i) {
-		this.data[idx + start] = (byte) i;
+		this.data[idx + getStart()] = (byte) i;
 	}
 	
 	public int size() {
-		return end - start;
+		return getEnd() - getStart();
 	}
 
 	public Iterator<Byte> iterator() {
@@ -87,13 +94,13 @@ public class Buffer implements Iterable<Byte> {
 			private int idx = 0;
 
 			public boolean hasNext() {
-				return (idx + start) < end;
+				return (idx + getStart()) < end;
 			}
 
 			public Byte next() {
 				Byte val = 0;
-				if (idx+start < data.length){
-					val = data[idx + start];
+				if (idx + getStart() < data.length){
+					val = data[idx + getStart()];
 				}
 				idx++;
 				return val;
@@ -111,7 +118,7 @@ public class Buffer implements Iterable<Byte> {
 
 
 	public void writeToStream(FileOutputStream destenation, int offset, int len) throws IOException {
-		destenation.write(this.data, start + offset, len);
+		destenation.write(this.data, getStart() + offset, len);
 	}
 
 	public void xor(int idx, byte otherValue) {
@@ -119,8 +126,8 @@ public class Buffer implements Iterable<Byte> {
 	}
 
 	public void setRange(int start, int len) {
-		this.start = start;
-		this.end = start + len;
+		this.setStart(start);
+		this.setEnd(start + len);
 	}
 
 }

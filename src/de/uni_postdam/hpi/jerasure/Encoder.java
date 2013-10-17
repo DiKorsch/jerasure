@@ -47,8 +47,13 @@ public class Encoder {
 		Schedule.do_scheduled_operations(data, coding, schedules, packetSize, w);
 	}
 	
-	private void encode(Buffer data, Buffer coding){
+	public void encode(Buffer data, Buffer coding){
 		this.encode(data, coding, packetSize);
+	}
+	
+
+	public void encode(byte[] data, int startData, byte[] coding, int startCoding) {
+		Schedule.do_scheduled_operations(data, startData, coding, startCoding, schedules, packetSize, w);
 	}
 
 	private void calcSizes(long size) {
@@ -122,8 +127,15 @@ public class Encoder {
 		for (int i = 0; i < steps; i++) {
 			data.setRange(i * blockSize, blockSize);
 			coding.setRange(i * codingBlockSize, codingBlockSize);
-			
-			encode(data, coding);
+			EncoderThread t = new EncoderThread(data, coding, this);
+			t.start();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+//			encode(data, coding);
 		}	
 	}
+
 }
