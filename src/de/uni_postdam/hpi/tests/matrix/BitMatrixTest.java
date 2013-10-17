@@ -144,11 +144,11 @@ public class BitMatrixTest {
 		});
 		Schedule[] schedules = bitMatrix.toSchedules(k, w);
 		Schedule[] should = {
-				new Schedule(OPERATION.COPY, 0, 0, 3, 0), new Schedule(OPERATION.XOR,  1, 1, 3, 0), new Schedule(OPERATION.XOR,  2, 2, 3, 0),
-				new Schedule(OPERATION.COPY, 0, 1, 3, 1), new Schedule(OPERATION.XOR,  1, 2, 3, 1), new Schedule(OPERATION.XOR,  2, 3, 3, 1),
-				new Schedule(OPERATION.COPY, 0, 2, 3, 2), new Schedule(OPERATION.XOR,  1, 2, 3, 2), new Schedule(OPERATION.XOR,  1, 3, 3, 2), new Schedule(OPERATION.XOR,  2, 4, 3, 2),
-				new Schedule(OPERATION.COPY, 0, 3, 3, 3), new Schedule(OPERATION.XOR,  1, 4, 3, 3), new Schedule(OPERATION.XOR,  2, 0, 3, 3),
-				new Schedule(OPERATION.COPY, 0, 4, 3, 4), new Schedule(OPERATION.XOR,  1, 0, 3, 4), new Schedule(OPERATION.XOR,  2, 0, 3, 4), new Schedule(OPERATION.XOR,  2, 1, 3, 4),
+				Schedule.create(OPERATION.COPY, 0, 0, 0, 0), Schedule.create(OPERATION.XOR,  1, 1, 0, 0), Schedule.create(OPERATION.XOR,  2, 2, 0, 0),
+				Schedule.create(OPERATION.COPY, 0, 1, 0, 1), Schedule.create(OPERATION.XOR,  1, 2, 0, 1), Schedule.create(OPERATION.XOR,  2, 3, 0, 1),
+				Schedule.create(OPERATION.COPY, 0, 2, 0, 2), Schedule.create(OPERATION.XOR,  1, 2, 0, 2), Schedule.create(OPERATION.XOR,  1, 3, 0, 2), Schedule.create(OPERATION.XOR,  2, 4, 0, 2),
+				Schedule.create(OPERATION.COPY, 0, 3, 0, 3), Schedule.create(OPERATION.XOR,  1, 4, 0, 3), Schedule.create(OPERATION.XOR,  2, 0, 0, 3),
+				Schedule.create(OPERATION.COPY, 0, 4, 0, 4), Schedule.create(OPERATION.XOR,  1, 0, 0, 4), Schedule.create(OPERATION.XOR,  2, 0, 0, 4), Schedule.create(OPERATION.XOR,  2, 1, 0, 4),
 		}; 
 		
 		assertArrayEquals(should, schedules);

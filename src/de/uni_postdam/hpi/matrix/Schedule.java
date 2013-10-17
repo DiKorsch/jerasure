@@ -3,7 +3,7 @@ package de.uni_postdam.hpi.matrix;
 import de.uni_postdam.hpi.cauchy.Cauchy;
 import de.uni_postdam.hpi.jerasure.Buffer;
 
-public class Schedule {
+public abstract class Schedule {
 
 	public static long xorCount = 0;
 	public static long copyCount = 0;
@@ -13,7 +13,6 @@ public class Schedule {
 		XOR
 	}
 	
-	/** FALSE for copy and TRUE for XOR*/
 	OPERATION operation;
 	
 	int sourceId;
@@ -22,8 +21,15 @@ public class Schedule {
 	int destinationId;
 	int destinationBit;
 	
-	public Schedule(OPERATION operation, int srcId, int srcBit, int destId, int destBit) {
-		this.operation = operation;
+	public static Schedule create(OPERATION operation, int srcId, int srcBit, int destId, int destBit) {
+		if(operation == OPERATION.XOR){
+			return new XORSchedule(srcId, srcBit, destId, destBit);
+		}else{
+			return new COPYSchedule(srcId, srcBit, destId, destBit);
+		}
+	}
+	
+	protected Schedule(int srcId, int srcBit, int destId, int destBit){
 		this.sourceId = srcId;
 		this.sourceBit = srcBit;
 		this.destinationId = destId;
@@ -54,99 +60,26 @@ public class Schedule {
 	}
 
 
-	private void operate(Buffer data, Buffer coding, int packetSize,
-			int w) {
-		int srcStart = computeSrcIdx(packetSize, w);
-		int destStart = computeDestIdx(packetSize, w);
-		if(operation == OPERATION.XOR){
-			xor(data, coding, srcStart, destStart, packetSize);
-		}else{
-			copy(data, coding, srcStart, destStart, packetSize);
-		}
-	}
-
-	public byte[] operate(byte[] data, byte[] coding, int packetSize, int w) {
-		int srcStart = computeSrcIdx(packetSize, w);
-		int destStart = computeDestIdx(packetSize, w);
-		if(operation == OPERATION.XOR){
-			return xor(data, coding, srcStart, destStart, packetSize);
-		}else{
-			return copy(data, coding, srcStart, destStart, packetSize);
-		}
-	}
-
-	public byte[] operate(Buffer data, byte[] coding, int packetSize, int w) {
-		int srcStart = computeSrcIdx(packetSize, w);
-		int destStart = computeDestIdx(packetSize, w);
-		if(operation == OPERATION.XOR){
-			return xor(data, coding, srcStart, destStart, packetSize);
-		}else{
-			return copy(data, coding, srcStart, destStart, packetSize);
-		}
-	}
-	
-	private void copy(Buffer data, Buffer coding, int srcStart,
-			int destStart, int packetSize) {
-		for(int i = 0; i < packetSize; i++){
-			coding.set(destStart + i, data.get(srcStart + i));
-		}
-		copyCount++;
-	}
-
-	private void xor(Buffer data, Buffer coding, int srcStart, int destStart,
-			int packetSize) {
-		for(int i = 0; i < packetSize; i++){
-			coding.xor(destStart + i, data.get(srcStart + i)); 
-		}
-		xorCount++;
-	}
-	
-	private byte[] copy(Buffer data, byte[] coding, int srcStart, int destStart, int packetSize) {
-		for(int i = 0; i < packetSize; i++){
-			coding[destStart + i] = data.get(srcStart + i); 
-		}
-		return coding;
-	}
-
-	private byte[] xor(Buffer data, byte[] coding, int srcStart, int destStart, int packetSize) {
-		for(int i = 0; i < packetSize; i++){
-			coding[destStart + i] ^= data.get(srcStart + i); 
-		}
-		return coding;
-	}
+	public abstract void operate(Buffer data, Buffer coding, int packetSize, int w);
+	public abstract byte[] operate(byte[] data, byte[] coding, int packetSize, int w);
+	public abstract byte[] operate(Buffer data, byte[] coding, int packetSize, int w);
 
 
-	
-	private byte[] copy(byte[] data, byte[] coding, int srcStart, int destStart, int packetSize) {
-		
-		for(int i = 0; i < packetSize; i++){
-			coding[destStart + i] = data[srcStart + i]; 
-		}
-		return coding;
-
-	}
-
-	private byte[] xor(byte[] data, byte[] coding, int srcStart, int destStart, int packetSize) {
-		
-		for(int i = 0; i < packetSize; i++){
-			coding[destStart + i] ^= data[srcStart + i]; 
-		}
-		return coding;
-	}
-
-	private int computeSrcIdx(int packetSize, int w){
+	protected int computeSrcIdx(int packetSize, int w){
 		return (this.sourceId * w + this.sourceBit) * packetSize;
 	}
 	
-	private int computeDestIdx(int packetSize, int w){
+	protected int computeDestIdx(int packetSize, int w){
 		return (this.destinationId * w + this.destinationBit) * packetSize;
 	}
+	
 	
 	public static Schedule[] generate(int k, int m, int w){
 		BitMatrix matrix = new BitMatrix(Cauchy.good_general_coding_matrix(k, m, w), w);
 		return matrix.toSchedules(k, w);
 	}
-
+	
+	
 	public static byte[] do_scheduled_operations(byte[] data, byte[] coding, Schedule[] schedules, int packetSize, int w){
 		for (Schedule sched : schedules) {
 			coding = sched.operate(data, coding, packetSize, w);

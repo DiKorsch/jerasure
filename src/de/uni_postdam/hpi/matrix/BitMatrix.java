@@ -67,7 +67,7 @@ public class BitMatrix extends Matrix{
 			OPERATION op = OPERATION.COPY;
 			for(int col = 0; col < this.cols(); col++){
 				if(this.get(col, row) == 1){
-					ops.add(new Schedule(op, 
+					ops.add(Schedule.create(op, 
 							col / w, col % w, 
 							row / w, row % w));
 					op = OPERATION.XOR;
