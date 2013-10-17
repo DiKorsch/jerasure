@@ -15,7 +15,7 @@ public class GrowingKTest extends BasePerfTest{
 	String fileName = "10mb";
 	long fileSize = 10 * MB;
 	
-	int min_k = 5, max_k = 100;
+	int min_k = 3, max_k = 15;
 	int m = 2, w = 8;
 	
 	@Test
@@ -25,7 +25,7 @@ public class GrowingKTest extends BasePerfTest{
 		cleanAndCreateFile(f, fileSize);
 		long t1, t2, size = f.length();
 		
-		for(int k = min_k; k <= max_k; k+=5) {
+		for(int k = min_k; k <= max_k; k++) {
 			String out = "";
 
 			Schedule.copyCount = 0;

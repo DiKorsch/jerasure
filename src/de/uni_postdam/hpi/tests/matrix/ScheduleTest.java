@@ -11,8 +11,8 @@ import de.uni_postdam.hpi.matrix.Schedule.OPERATION;
 
 public class ScheduleTest {
 
-	Schedule copySchedule = new Schedule(OPERATION.COPY, 0, 1, 0, 1);
-	Schedule xorSchedule = new Schedule(OPERATION.XOR, 0, 1, 0, 1);
+	Schedule copySchedule = Schedule.create(OPERATION.COPY, 0, 1, 0, 1);
+	Schedule xorSchedule = Schedule.create(OPERATION.XOR, 0, 1, 0, 1);
 	
 	byte[] in = null;
 	Buffer inBuffer = null;
