@@ -4,7 +4,7 @@ import static de.uni_postdam.hpi.utils.FileUtils.*;
 
 public class CalcUtils {
 	
-	static final long maxBufferSize = 50 * MB;
+	static final long maxBufferSize = 5 * MB;
 
 	public static int calcPacketSize(int k, int w, long filesize) {
 		int packetsize = (int) (filesize / (k * w * 256));

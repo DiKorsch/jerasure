@@ -12,10 +12,10 @@ import static de.uni_postdam.hpi.utils.FileUtils.*;
 
 public class GrowingKTest extends BasePerfTest{
 
-	String fileName = "10mb";
-	long fileSize = 10 * MB;
+	String fileName = "100mb";
+	long fileSize = 100 * MB;
 	
-	int min_k = 3, max_k = 15;
+	int min_k = 5, max_k = 100;
 	int m = 2, w = 8;
 	
 	@Test
@@ -25,7 +25,7 @@ public class GrowingKTest extends BasePerfTest{
 		cleanAndCreateFile(f, fileSize);
 		long t1, t2, size = f.length();
 		
-		for(int k = min_k; k <= max_k; k++) {
+		for(int k = min_k; k <= max_k; k+=5) {
 			String out = "";
 
 			Schedule.copyCount = 0;

@@ -21,6 +21,9 @@ public class Encoder {
 	Schedule[] schedules = null;
 
 	int blockSize, bufferSize, packetSize, codingBlockSize;
+	
+	static int numThreads = 4;
+	EncoderThread[] threads = null;
 
 	public Encoder(int k, int m, int w) {
 		this.k = k;
@@ -30,6 +33,8 @@ public class Encoder {
 		this.matrix = Cauchy.good_general_coding_matrix(k, m, w);
 		this.bitMatrix = new BitMatrix(matrix, w);
 		this.schedules = bitMatrix.toSchedules(k, w);
+		
+		this.threads = new EncoderThread[numThreads];
 	}
 
 	public byte[] encode(byte[] data, int packetSize) {
@@ -124,18 +129,57 @@ public class Encoder {
 
 	private void performEncoding(Buffer data, Buffer coding) {
 		int steps = bufferSize / blockSize;
-		for (int i = 0; i < steps; i++) {
-			data.setRange(i * blockSize, blockSize);
-			coding.setRange(i * codingBlockSize, codingBlockSize);
-			EncoderThread t = new EncoderThread(data, coding, this);
-			t.start();
+		if(steps == 0){return;}
+		int stepsProThread = steps / numThreads;// + 1;
+		if ( steps % numThreads != 0) stepsProThread++;
+		int c = 0;
+//		EncoderThread t = null;
+		for (int blockId = 0; blockId < steps; blockId++) {
+			data.setRange(blockId * blockSize, blockSize);
+			coding.setRange(blockId * codingBlockSize, codingBlockSize);
+			
+			if(blockId % stepsProThread == 0){
+				threads[c++] = new EncoderThread(data, coding, this);
+			} else {
+				threads[c-1].addRange(data.getStart(), coding.getStart());
+			}
+			
+			// singleThreaded
+//			if(blockId == 0){
+//				t = new EncoderThread(data, coding, this);
+//			}else{
+//				t.addRange(data.getStart(), coding.getStart());
+//			}
+//			encode(data, coding);
+		}
+		start(threads);
+		wait_(threads);
+//		t.start();
+//		try {
+//			t.join();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+	}
+
+	private void wait_(EncoderThread[] threads2){
+		for(Thread t: threads){
+			if(t == null) continue;
 			try {
 				t.join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-//			encode(data, coding);
-		}	
+		}
+	}
+
+	private void start(EncoderThread[] threads) {
+		for(Thread t: threads){
+			if(t != null ){
+				t.start();
+			}
+		}
+		
 	}
 
 }
