@@ -130,10 +130,9 @@ public class Encoder {
 	private void performEncoding(Buffer data, Buffer coding) {
 		int steps = bufferSize / blockSize;
 		if(steps == 0){return;}
-		int stepsProThread = steps / numThreads;// + 1;
+		int stepsProThread = steps / numThreads;
 		if ( steps % numThreads != 0) stepsProThread++;
 		int c = 0;
-//		EncoderThread t = null;
 		for (int blockId = 0; blockId < steps; blockId++) {
 			data.setRange(blockId * blockSize, blockSize);
 			coding.setRange(blockId * codingBlockSize, codingBlockSize);
@@ -144,22 +143,9 @@ public class Encoder {
 				threads[c-1].addRange(data.getStart(), coding.getStart());
 			}
 			
-			// singleThreaded
-//			if(blockId == 0){
-//				t = new EncoderThread(data, coding, this);
-//			}else{
-//				t.addRange(data.getStart(), coding.getStart());
-//			}
-//			encode(data, coding);
 		}
 		start(threads);
 		wait_(threads);
-//		t.start();
-//		try {
-//			t.join();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
 	}
 
 	private void wait_(EncoderThread[] threads2){

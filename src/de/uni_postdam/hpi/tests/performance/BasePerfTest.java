@@ -14,11 +14,11 @@ public class BasePerfTest {
 
 
 	static File testDir = new File("performanceTest");
-	File getFile(String fileName) {
+	protected File getFile(String fileName) {
 		return new File(testDir.getAbsolutePath() + File.separator + fileName);
 	}
 	
-	void cleanAndCreateFile(File f, long size){
+	protected void cleanAndCreateFile(File f, long size){
 		cleanDir(testDir);
 		assertTrue(createRandomContentFile(f, size));
 	}

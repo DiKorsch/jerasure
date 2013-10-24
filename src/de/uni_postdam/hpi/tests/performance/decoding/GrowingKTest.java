@@ -1,4 +1,4 @@
-package de.uni_postdam.hpi.tests.performance;
+package de.uni_postdam.hpi.tests.performance.decoding;
 
 import static de.uni_postdam.hpi.utils.FileUtils.MB;
 
@@ -9,23 +9,24 @@ import org.junit.Test;
 import de.uni_postdam.hpi.jerasure.Decoder;
 import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.tests.performance.BasePerfTest;
+import de.uni_postdam.hpi.utils.FileUtils;
 
-public class GrowingWTest extends BasePerfTest {
+public class GrowingKTest extends BasePerfTest {
 
 	String fileName = "100mb";
 	long fileSize = 100 * MB;
 	
-	int min_w = 4, max_w = 20;
-	int k = 4, m = 3;
+	int min_k = 3, max_k = 30;
+	int m = 2, w = 8;
 	
 	@Test
 	public void test() {
-
 		File f = this.getFile(fileName);
 		cleanAndCreateFile(f, fileSize);
 		long t1, t2, size = f.length();
 		
-		for(int w = min_w; w <= max_w; w++) {
+		for(int k = min_k; k <= max_k; k++) {
 			String out = "";
 
 			Schedule.copyCount = 0;
@@ -35,11 +36,9 @@ public class GrowingWTest extends BasePerfTest {
 			Encoder enc = new Encoder(k, m, w);
 			Decoder dec = new Decoder(f, k, m, w);
 			
-			t1 = System.currentTimeMillis();
 			enc.encode(f);
-			t2 = System.currentTimeMillis();
-			
-			out += String.format("Encoding: %d\t", t2 - t1);
+			File[] k_parts = FileUtils.collectFiles(f.getAbsolutePath(), "k", k);
+			FileUtils.deleteSomeFiles(k_parts, m);
 			
 			t1 = System.currentTimeMillis();
 			dec.decode(size);
@@ -51,6 +50,6 @@ public class GrowingWTest extends BasePerfTest {
 			
 			System.out.println(out);
 		}
-	
 	}
+
 }

@@ -8,8 +8,6 @@ public class EncoderThread extends Thread {
 	byte[] data = null;
 	byte[] coding = null;
 	
-//	int startData, startCoding;
-	
 	int packetSize, w;
 	Encoder enc = null;
 	

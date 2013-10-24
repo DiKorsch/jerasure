@@ -58,7 +58,6 @@ public class DecoderTest {
 	public void tearDown() {
 		cleanDir(testDir);
 	}
-
 	
 	
 	@Test
@@ -398,7 +397,6 @@ public class DecoderTest {
 		
 	}
 	
-	
 	@Test
 	public void test_generate_decoding_bitmatrix_k_and_m_missing(){
 				
@@ -465,7 +463,6 @@ public class DecoderTest {
 	}
 	
 	
-	
 	// Scenarios
 	private void all_parts_exist(File f) {
 		cleanAndCreateFile(f);
@@ -509,14 +506,6 @@ public class DecoderTest {
 		
 	}
 	
-	private void deleteSomeFiles(File[] files, int toDelete){
-		int c = 0;
-		for (File part : files) {
-			if (++c > toDelete)
-				break;
-			assertTrue(part.delete());
-		}
-	}
 	
 	private String[] getHashes(File[] parts) throws NoSuchAlgorithmException, IOException{
 		int c = 0;

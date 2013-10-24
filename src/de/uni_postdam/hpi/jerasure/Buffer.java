@@ -11,12 +11,9 @@ public class Buffer implements Iterable<Byte> {
 	private int start = 0;
 	private int end = -1;
 	
-	private long threadId = 0;
-
 	byte defaultValue = 0;
 
 	public Buffer(int size) {
-		this.threadId = Thread.currentThread().getId();
 		this.setData(new byte[size]);
 		this.setEnd(size);
 	}
@@ -26,10 +23,6 @@ public class Buffer implements Iterable<Byte> {
 		this.setData(rawData);
 	}
 	
-	public void setCurrentThread(long threadId){
-		this.threadId = threadId;
-	}
-
 	public byte[] getData() {
 		return data;
 	}

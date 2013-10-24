@@ -8,6 +8,7 @@ import java.io.RandomAccessFile;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.SortedMap;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -131,50 +132,40 @@ public class FileUtils {
 					"one of the parts(or both) arrays was null: k=" + k_parts
 							+ " m=" + m_parts);
 		}
-	
-		int k = k_parts.length;
-		int m = m_parts.length;
-	
-		int blockSize = w * packetSize * k;
-		int len = w * packetSize;
-		
-		for(int j = 0; j < data.size() / blockSize; j++){
-			for (int i = 0; i < k; i++) {
-				int start = (j * k + i) *  len;
-				data.writeToStream(k_parts[i], start, len);
-			}
-		}
-		
-		blockSize = w * packetSize * m;
-		for(int j = 0; j < coding.size() / blockSize ; j++){
-					
-			for (int i = 0; i < m; i++) {
+		writeParts(data, k_parts, w, packetSize);	
+		writeParts(coding, m_parts, w, packetSize);
+	}
 
-				int start = (j * m + i) *  len;
-				coding.writeToStream(m_parts[i], start, len);
+
+	public static void writeParts(Buffer data, FileOutputStream[] parts, int w, int packetSize) 
+			throws IOException
+	{
+		int blockSize = w * packetSize * parts.length;
+		int len = w * packetSize;
+		for(int j = 0; j < data.size() / blockSize; j++){
+			for (int i = 0; i < parts.length; i++) {
+				if(parts[i] == null) continue;
+				int start = (j * parts.length + i) *  len;
+				data.writeToStream(parts[i], start, len);
 			}
 		}
 	}
-
-	public static void writeParts(Buffer data, byte[] coding,
-			FileOutputStream[] k_parts, FileOutputStream[] m_parts, int w,
-			int packetSize) throws IOException {
-		if (k_parts == null || m_parts == null) {
-			throw new IllegalArgumentException(
-					"one of the parts(or both) arrays was null: k=" + k_parts
-							+ " m=" + m_parts);
+	
+	public static void readParts(Buffer data, SortedMap<Integer, FileInputStream> parts, 
+			int w, int packetSize) throws IOException{
+		
+		byte [] packet = new byte[packetSize * w];
+		int c = 0;
+		FileInputStream stream = null;
+		while(c < data.size()){
+			for(int partId = 0; partId < parts.size(); partId++){
+				stream = parts.get(partId);
+				stream.read(packet);
+				for(byte b: packet){
+					data.set(c++, b);
+				}
+			}
 		}
-	
-		int k = k_parts.length;
-		int m = m_parts.length;
-	
-		for (int i = 0; i < k; i++) {
-			FileUtils.write(i, k_parts[i], data, w, packetSize);
-		}
-	
-		for (int i = 0; i < m; i++) {
-			FileUtils.write(i, m_parts[i], coding, w, packetSize);
-		}		
 	}
 	
 	private static void write(int idx, FileOutputStream destenation,
@@ -183,13 +174,6 @@ public class FileUtils {
 		destenation.write(data, start, w * packetSize);
 	}
 
-	private static void write(int idx, FileOutputStream destenation,
-			Buffer data, int w, int packetSize) throws IOException {
-		int start = idx * w * packetSize;
-		data.writeToStream(destenation, start, w * packetSize);
-	}
-
-	
 	public static FileOutputStream[] createParts(String filePath,
 			String suffix, int numParts) {
 		FileOutputStream[] result = new FileOutputStream[numParts];
@@ -224,8 +208,6 @@ public class FileUtils {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			} else {
-				System.err.println("output stream was null!");
 			}
 		}
 	}
@@ -332,6 +314,14 @@ public class FileUtils {
 		
 	}
 	
+	public static void deleteSomeFiles(File[] files, int toDelete){
+		int c = 0;
+		for (File part : files) {
+			if (++c > toDelete)
+				break;
+			part.delete();
+		}
+	}
 
 	
 	public static boolean checkFileContent(File f, byte[] should) throws IOException {
