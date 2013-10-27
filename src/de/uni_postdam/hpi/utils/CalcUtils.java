@@ -7,7 +7,7 @@ public class CalcUtils {
 	static final long maxBufferSize = 5 * MB;
 
 	public static int calcPacketSize(int k, int w, long filesize) {
-		int packetsize = (int) (filesize / (k * w * 256));
+		int packetsize = (int) (filesize / (k * w * 128));
 		packetsize = packetsize + 1;
 		return packetsize;
 	}
@@ -18,19 +18,9 @@ public class CalcUtils {
 
 	public static int calcBufferSize(int k, int w, int packetSize, long size) {
 		int blockSize = calcBlockSize(k, w, packetSize);
-		int factor = (int) (size / blockSize);
-		int calcFactor = factor;
-		int i;
-		for (i = factor - 1; i > 1; i--) {
-			if (factor % i == 0) {
-				calcFactor = i;
-				break;
-			}
-		}
-		if (calcFactor == 0) {
-			return (int) Math.min(size, maxBufferSize);
-		}
-		return (int) Math.min(calcFactor * blockSize, maxBufferSize);
+		long bufferSize = Math.min(maxBufferSize, size);
+		bufferSize = (bufferSize / blockSize + 1) * blockSize;
+		return (int) bufferSize;
 	}
 	
 	public static int calcBlockSize(int k, int w, int packetSize){

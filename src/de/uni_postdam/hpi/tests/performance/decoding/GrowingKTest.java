@@ -17,7 +17,7 @@ public class GrowingKTest extends BasePerfTest {
 	String fileName = "100mb";
 	long fileSize = 100 * MB;
 	
-	int min_k = 3, max_k = 30;
+	int min_k = 3, max_k = 10;
 	int m = 2, w = 8;
 	
 	@Test

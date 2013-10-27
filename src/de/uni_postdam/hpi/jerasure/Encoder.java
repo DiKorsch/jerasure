@@ -148,7 +148,7 @@ public class Encoder {
 		wait_(threads);
 	}
 
-	private void wait_(EncoderThread[] threads2){
+	private void wait_(EncoderThread[] threads){
 		for(Thread t: threads){
 			if(t == null) continue;
 			try {

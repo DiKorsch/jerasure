@@ -151,21 +151,33 @@ public class FileUtils {
 		}
 	}
 	
-	public static void readParts(Buffer data, SortedMap<Integer, FileInputStream> parts, 
+	public static int readParts(Buffer data, SortedMap<Integer, FileInputStream> parts, 
 			int w, int packetSize) throws IOException{
 		
-		byte [] packet = new byte[packetSize * w];
-		int c = 0;
-		FileInputStream stream = null;
-		while(c < data.size()){
-			for(int partId = 0; partId < parts.size(); partId++){
-				stream = parts.get(partId);
-				stream.read(packet);
-				for(byte b: packet){
-					data.set(c++, b);
+		int len = packetSize * w;
+		int numStreams = parts.size();
+
+		int pos = 0;
+		int bytesRead = 0;
+		
+		boolean endReached = false;
+		int i = data.size() / (numStreams * len);
+		while(i > 0){
+			for(int partId = 0; partId < numStreams; partId++){
+				int read = data.readFromStream(parts.get(partId), pos, len);
+				pos += len;
+				if(read == -1){
+					endReached = true;
+				} else {
+					bytesRead += read;
 				}
 			}
+			if(endReached) {
+				return -1;
+			}
+			i--;
 		}
+		return bytesRead;
 	}
 	
 	private static void write(int idx, FileOutputStream destenation,

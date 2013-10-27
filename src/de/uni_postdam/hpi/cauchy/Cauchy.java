@@ -30,7 +30,6 @@ public class Cauchy {
 		} else {
 			matrix = original_coding_matrix(k, m, w);
 			matrix = improve_coding_matrix(k, m, w, matrix);
-
 		}
 
 		return matrix;

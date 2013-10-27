@@ -232,7 +232,7 @@ public class DecoderTest {
 		
 		assertEquals(hashShould, getMD5Hash(f));
 	}
-	
+
 	@Test
 	public void test_decode_256_bytes(){
 
@@ -243,7 +243,7 @@ public class DecoderTest {
 		File[] m_files = null;
 		
 		try {
-			k = 2; m = 1; w = 4;
+			k = 2; m = 1; w = 7;
 			byte[] content = new byte[256];
 			for(int i = 0; i < 256; i++){
 				content[i] = (byte) i;
@@ -263,25 +263,50 @@ public class DecoderTest {
 				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
 			}
 
-			byte[] content_k1 = new byte[256 / 2];
-			byte[] content_k2 = new byte[256 / 2];
-			byte[] content_m1 = new byte[256 / 2];
+			deleteSomeFiles(k_files, m);
+			assertTrue(original.delete());
+			assertFalse(original.exists());
+			new Decoder(original, k, m, w).decode(size);
+			assertTrue(original.exists());
+
+			assertTrue(checkFileContent(original, content));
 			
-			boolean first = false;
-			int c1 = 0, c2 = 0;
-			for(int i = 0; i < 256; i++){
-				if((i % 4) == 0){
-					first = !first; // toggle every 4th byte
-				}
-				if(first){
-					content_k1[c1++] = (byte)i; 
-				} else {
-					content_k2[c2++] = (byte)i;
-				}
-				// fill xored m-file
-				if(i < 128) content_m1[i] = 4;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+
+	@Test
+	public void test_decode_big_file(){
+
+		int k,m,w;
+		File original = null;
+
+		File[] k_files = null;
+		File[] m_files = null;
+		
+		try {
+			long numBytes = 16 * MB;
+			k = 2; m = 1; w = 7;
+			byte[] content = new byte[(int) numBytes];
+			for(int i = 0; i < numBytes; i++){
+				content[i] = (byte) i;
+			}
+			original = createFile("original", content);
+			long size = original.length();
+			new Encoder(k, m, w).encode(original);
+
+			k_files = collectFiles(original.getAbsolutePath(), "k", k);
+			m_files = collectFiles(original.getAbsolutePath(), "m", m);
+			
+			for(File f: k_files){
+				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
 			}
 			
+			for(File f: m_files){
+				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+			}
 
 			deleteSomeFiles(k_files, m);
 			assertTrue(original.delete());
@@ -289,11 +314,6 @@ public class DecoderTest {
 			new Decoder(original, k, m, w).decode(size);
 			assertTrue(original.exists());
 
-			assertTrue(checkFileContent(k_files[0], content_k1));
-			assertTrue(checkFileContent(k_files[1], content_k2));
-
-			assertTrue(checkFileContent(m_files[0], content_m1));
-			
 			assertTrue(checkFileContent(original, content));
 			
 		} catch (IOException e) {
@@ -311,7 +331,7 @@ public class DecoderTest {
 		File[] m_files = null;
 		
 		try {
-			k = 3; m = 2; w = 7;
+			k = 3; m = 2; w = 6;
 			int len = 64;
 			byte[] content = new byte[len];
 			for(int i = 0; i < len; i++){

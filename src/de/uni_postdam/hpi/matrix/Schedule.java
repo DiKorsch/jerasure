@@ -105,7 +105,6 @@ public abstract class Schedule {
 		for (Schedule sched : schedules) {
 			sched.operate(data, startData, coding, startCoding, packetSize, w);
 		}
-
 	}
 	
 }

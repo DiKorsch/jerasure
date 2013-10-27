@@ -3,28 +3,28 @@ package de.uni_postdam.hpi.jerasure;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EncoderThread extends Thread {
+public class DecoderThread extends Thread {
 
 	byte[] data = null;
 	byte[] coding = null;
 	
-	Encoder enc = null;
+	Decoder dec = null;
 	
 	List<Integer[]> starts = new ArrayList<>();
 	
-	public EncoderThread(Buffer data, Buffer coding, Encoder encoder) {
+	public DecoderThread(Buffer data, Buffer coding, Decoder decoder) {
+
 		this.data = data.getData();
 		this.coding = coding.getData();
-		this.enc = encoder;
+		this.dec = decoder;
 		
 		this.addRange(data.getStart(), coding.getStart());
-		
 	}
-	
+
 	@Override
 	public void run() {
 		for(Integer[] start: starts){
-			enc.encode(data, start[0], coding, start[1]);
+			dec.decode(data, start[0], coding, start[1]);
 		}
 	}
 
@@ -32,4 +32,5 @@ public class EncoderThread extends Thread {
 
 		starts.add(new Integer[]{startData, startCoding});
 	}
+		
 }
