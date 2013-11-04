@@ -64,18 +64,11 @@ public class Decoder {
 		}
 		this.originalFileSize = size;
 		calcSizes();
-		long t1, t2;
 		if (!all_k_parts_exist()) {
 			generateSchedules();
-			t1 = System.currentTimeMillis();
 			restoreKParts();
-			t2 = System.currentTimeMillis();
-			System.out.println("restore: " + (t2-t1));
 		}
-		t1 = System.currentTimeMillis();
 		decodeFromKParts();
-		t2 = System.currentTimeMillis();
-		System.out.println("write: " + (t2-t1));
 	}
 
 	public byte[] decode(byte[] data, int packetSize) {

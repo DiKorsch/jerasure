@@ -17,7 +17,7 @@ public class GrowingKTest extends BasePerfTest {
 	String fileName = "100mb";
 	long fileSize = 100 * MB;
 	
-	int min_k = 3, max_k = 10;
+	int min_k = 3, max_k = 30;
 	int m = 2, w = 8;
 	
 	@Test
@@ -29,16 +29,16 @@ public class GrowingKTest extends BasePerfTest {
 		for(int k = min_k; k <= max_k; k++) {
 			String out = "";
 
-			Schedule.copyCount = 0;
-			Schedule.xorCount = 0;
 			
 			out += String.format("CR[%d:%d], w=%d:\t", k,m,w);
 			Encoder enc = new Encoder(k, m, w);
 			Decoder dec = new Decoder(f, k, m, w);
 			
 			enc.encode(f);
-			File[] k_parts = FileUtils.collectFiles(f.getAbsolutePath(), "k", k);
-			FileUtils.deleteSomeFiles(k_parts, m);
+//			File[] k_parts = FileUtils.collectFiles(f.getAbsolutePath(), "k", k);
+//			FileUtils.deleteSomeFiles(k_parts, 1);
+			Schedule.copyCount = 0;
+			Schedule.xorCount = 0;
 			
 			t1 = System.currentTimeMillis();
 			dec.decode(size);
