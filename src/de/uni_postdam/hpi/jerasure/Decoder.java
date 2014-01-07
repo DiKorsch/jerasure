@@ -20,7 +20,7 @@ public class Decoder {
 	File original = null;
 	int k, m, w;
 
-	static int numThreads = 20;
+	static int numThreads = Runtime.getRuntime().availableProcessors();//*/20;
 	File[] k_parts, m_parts;
 
 	boolean[] erasures = null;
@@ -194,7 +194,7 @@ public class Decoder {
 				if (blockId % stepsProThread == 0) {
 					threads[c++] = new DecoderThread(data, coding, this);
 				} else {
-					threads[c - 1].addRange(data.getStart(), coding.getStart());
+					threads[c-1].addRange(data.getStart(), coding.getStart());
 				}
 			}
 			while (c < threads.length) {

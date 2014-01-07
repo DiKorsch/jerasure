@@ -12,7 +12,7 @@ import de.uni_postdam.hpi.jerasure.Encoder;
 public class PerformanceTest extends BasePerfTest {
 
 
-	int k = 3, m = 1, w = 2;
+	int k = 3, m = 1, w = 8;
 	Long[] files = {
 //		100 * KB, 
 //		500 * KB,  

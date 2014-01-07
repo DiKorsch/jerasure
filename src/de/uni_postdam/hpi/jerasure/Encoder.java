@@ -22,8 +22,10 @@ public class Encoder {
 
 	int blockSize, bufferSize, packetSize, codingBlockSize;
 	
-	static int numThreads = 4;
+	static int numThreads =Runtime.getRuntime().availableProcessors(); //4;
 	EncoderThread[] threads = null;
+	
+	long maxBufferSize = CalcUtils.maxBufferSize;
 
 	public Encoder(int k, int m, int w) {
 		this.k = k;
@@ -35,6 +37,11 @@ public class Encoder {
 		this.schedules = bitMatrix.toSchedules(k, w);
 		
 		this.threads = new EncoderThread[numThreads];
+	}
+	
+	public void setMaxBufferSize(long maxBuffer) {
+//		System.out.println("Using max " + maxBuffer + " for Buffer");
+		this.maxBufferSize = maxBuffer;
 	}
 
 	public byte[] encode(byte[] data, int packetSize) {
@@ -63,7 +70,8 @@ public class Encoder {
 
 	private void calcSizes(long size) {
 		packetSize = CalcUtils.calcPacketSize(k, w, size);
-		bufferSize = CalcUtils.calcBufferSize(k, w, packetSize, size);
+		bufferSize = CalcUtils.calcBufferSize(k, w, packetSize, size, this.maxBufferSize);
+//		System.out.println("Buffersize: " + bufferSize);
 		blockSize = CalcUtils.calcBlockSize(k, w, packetSize);
 		codingBlockSize = CalcUtils.calcCodingBlockSize(m, w, packetSize);
 	}

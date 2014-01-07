@@ -4,7 +4,7 @@ import static de.uni_postdam.hpi.utils.FileUtils.*;
 
 public class CalcUtils {
 	
-	static final long maxBufferSize = 5 * MB;
+	public static final long maxBufferSize = 10 * MB;
 
 	public static int calcPacketSize(int k, int w, long filesize) {
 		int packetsize = (int) (filesize / (k * w * 128));
@@ -16,11 +16,16 @@ public class CalcUtils {
 		return (origSize + (origSize * m / k));
 	}
 
-	public static int calcBufferSize(int k, int w, int packetSize, long size) {
+	public static int calcBufferSize(int k, int w, int packetSize, long size, long maxSize){
 		int blockSize = calcBlockSize(k, w, packetSize);
-		long bufferSize = Math.min(maxBufferSize, size);
+		long bufferSize = Math.min(maxSize, size);
 		bufferSize = (bufferSize / blockSize + 1) * blockSize;
 		return (int) bufferSize;
+		
+	}
+	
+	public static int calcBufferSize(int k, int w, int packetSize, long size) {
+		return calcBufferSize(k, w, packetSize, size, maxBufferSize);
 	}
 	
 	public static int calcBlockSize(int k, int w, int packetSize){
