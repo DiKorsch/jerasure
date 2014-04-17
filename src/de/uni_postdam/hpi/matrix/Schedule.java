@@ -11,13 +11,13 @@ public abstract class Schedule {
 	public enum OPERATION {
 		COPY, XOR
 	}
-	OPERATION operation;
+	public OPERATION operation;
 
-	int sourceId;
-	int sourceBit;
+	public int sourceId;
+	public int sourceBit;
 
-	int destinationId;
-	int destinationBit;
+	public int destinationId;
+	public int destinationBit;
 	
 	public static Schedule create(OPERATION operation, int srcId, int srcBit, int destId, int destBit) {
 		if(operation == OPERATION.XOR){
@@ -60,6 +60,8 @@ public abstract class Schedule {
 	public abstract void operate(byte[] data, int startData, byte[] coding, int startCoding, int packetSize, int w);
 	public abstract byte[] operate(byte[] data, byte[] coding, int packetSize, int w);
 	public abstract byte[] operate(Buffer data, byte[] coding, int packetSize, int w);
+	
+	public abstract byte[][] operate(byte[][] data, byte[][] coding, int w);
 
 
 	protected int computeSrcIdx(int packetSize, int w){

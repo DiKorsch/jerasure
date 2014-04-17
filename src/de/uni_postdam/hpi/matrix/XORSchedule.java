@@ -11,6 +11,13 @@ public class XORSchedule extends Schedule {
 	}
 	
 	@Override
+	public byte[][] operate(byte[][] data, byte[][] coding, int w) {
+
+		coding[destinationId][destinationBit] ^= data[sourceId][sourceBit];
+		return coding;
+	}
+	
+	@Override
 	public byte[] operate(Buffer data, byte[] coding, int packetSize, int w) {
 	
 		int srcStart = computeSrcIdx(packetSize, w);

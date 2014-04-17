@@ -10,6 +10,11 @@ public class COPYSchedule extends Schedule {
 		this.operation = OPERATION.COPY;
 	}
 
+	@Override
+	public byte[][] operate(byte[][] data, byte[][] coding, int w) {
+
+		return null;
+	}
 	
 
 	@Override
