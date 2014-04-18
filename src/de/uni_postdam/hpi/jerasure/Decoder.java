@@ -146,7 +146,7 @@ public class Decoder {
 
 				currRead = FileUtils.readParts(data, parts, w, packetSize);
 
-				performDecoding(data, coding, missing_parts);
+				performDecoding(data, coding);
 				
 				coding.setStart(0);
 				FileUtils.writeParts(coding, missing_parts, w, packetSize);
@@ -176,8 +176,7 @@ public class Decoder {
 		decode(data, coding, packetSize);
 	}
 
-	private void performDecoding(Buffer data, Buffer coding,
-			FileOutputStream[] missing_parts) throws IOException {
+	private void performDecoding(Buffer data, Buffer coding) throws IOException {
 		int bufferSize = data.size();
 		int blocks = bufferSize / blockSize;
 		if (blocks == 1) {

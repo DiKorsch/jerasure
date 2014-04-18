@@ -59,6 +59,8 @@ public class Encoder {
 		close(dataParts);
 		close(codingParts);
 		
+		fis.close();
+		
 	}
 
 

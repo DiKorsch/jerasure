@@ -3,15 +3,21 @@ package de.uni_postdam.hpi.jerasure.bufferless;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 
+
+
+
 import de.uni_postdam.hpi.cauchy.Cauchy;
+import de.uni_postdam.hpi.jerasure.Buffer;
 import de.uni_postdam.hpi.matrix.BitMatrix;
 import de.uni_postdam.hpi.matrix.Schedule;
+import de.uni_postdam.hpi.matrix.Schedule.OPERATION;
 import de.uni_postdam.hpi.utils.FileUtils;
 
 public class Decoder {
@@ -30,7 +36,7 @@ public class Decoder {
 	private byte[][] data;
 	private boolean fileEndReached;
 	
-	Decoder(File f, int k, int m, int w){
+	public Decoder(File f, int k, int m, int w){
 		this.destFile = f;
 		this.k = k;
 		this.m = m;
@@ -62,9 +68,9 @@ public class Decoder {
 		this.originalFileSize = origSize;
 
 		if (!all_k_parts_exist()) {
-			throw new RuntimeException("not implemented yet!");
-//			generateSchedules();
-//			restoreKParts();
+//			throw new RuntimeException("not implemented yet!");
+			generateSchedules();
+			restoreKParts();
 		}
 		decodeFromKParts();
 	}
@@ -137,8 +143,89 @@ public class Decoder {
 		return result;
 	}
 
+	private SortedMap<Integer, FileInputStream> getExistingParts()
+			throws FileNotFoundException {
+		SortedMap<Integer, FileInputStream> allParts = new TreeMap<Integer, FileInputStream>();
+		int c = 0;
+		for (int deviceId : row_to_device_id) {
+			File currFile = deviceId < k ? k_parts[deviceId] : m_parts[deviceId
+					- k];
+			if (!currFile.exists())
+				continue;
+			allParts.put(c++, new FileInputStream(currFile));
+		}
+		return allParts;
+	}
+
+	private FileOutputStream[] getMissingParts() throws FileNotFoundException {
+		FileOutputStream[] missing = new FileOutputStream[m];
+		int c = 0;
+		for (int deviceId : row_to_device_id) {
+			File currFile = deviceId < k ? k_parts[deviceId] : m_parts[deviceId
+					- k];
+			if (currFile.exists())
+				continue;
+			missing[c++] = new FileOutputStream(currFile);
+			if (c == dataFailed) {
+				break;
+			}
+		}
+		while (c < m) {
+			missing[c++] = null;
+		}
+		return missing;
+	}
+
+
 	private void restoreKParts() {
+		SortedMap<Integer, FileInputStream> parts = null;
+		FileOutputStream[] missing_parts = null;
+
+		try {
+			parts = getExistingParts();
+			missing_parts = getMissingParts();
+			int bytesWritten = 0;
+			int currRead = 0;
+			
+			do {
+				int i = 0;
+				for(FileInputStream fis: parts.values()){
+					currRead = fis.read(data[i++]);
+
+					if(currRead == -1) break;
+					bytesWritten += currRead;
+				}
+				
+				i = 0;
+				for(FileOutputStream fos: missing_parts){
+					if(fos == null) continue;
+					fos.write(encode(data)[i++]);
+				}
+
+			} while(bytesWritten < originalFileSize);
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			closeStreams(parts);
+			FileUtils.close(missing_parts);
+		}
 		
+	}
+	
+
+	private byte[][] encode(byte[][] data) {
+		byte[][] coding = new byte[m][w];
+		for(Schedule sched: this.schedules){
+			if(sched.operation == OPERATION.COPY) {
+				coding[sched.destinationId][sched.destinationBit] = data[sched.sourceId][sched.sourceBit];
+			} else {
+				coding[sched.destinationId][sched.destinationBit] ^= data[sched.sourceId][sched.sourceBit];
+			}
+		}
+		return coding;
 	}
 
 	private void generateSchedules() {
@@ -147,7 +234,7 @@ public class Decoder {
 		
 	}
 
-	private BitMatrix generate_decoding_bitmatrix() {
+	public BitMatrix generate_decoding_bitmatrix() {
 
 		updateErasures();
 		update_erased_ids();
@@ -250,6 +337,17 @@ public class Decoder {
 				return false;
 		}
 		return true;
+	}
+
+	public boolean isValid() {
+		updateErasures();
+		int c = 0;
+		for (boolean erased : erasures) {
+			if (erased)
+				c++;
+		}
+
+		return c <= this.m;
 	}
 
 
