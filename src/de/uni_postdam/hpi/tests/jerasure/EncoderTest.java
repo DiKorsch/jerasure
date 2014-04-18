@@ -10,7 +10,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import de.uni_postdam.hpi.jerasure.Buffer;
-import de.uni_postdam.hpi.jerasure.bufferless.Encoder;
+import de.uni_postdam.hpi.jerasure.Encoder;
 import de.uni_postdam.hpi.utils.CalcUtils;
 
 public class EncoderTest {
@@ -28,7 +28,7 @@ public class EncoderTest {
 	}
 	
 	
-	/*
+	
 	@Test
 	public void test_encoding_packet() {
 
@@ -322,7 +322,6 @@ public class EncoderTest {
 	}
 
 	
-	*/
 	@Test
 	public void test_encode_small_file(){
 		int k,m,w;

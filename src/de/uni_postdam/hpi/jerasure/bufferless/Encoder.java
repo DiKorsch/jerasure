@@ -2,15 +2,21 @@ package de.uni_postdam.hpi.jerasure.bufferless;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+
+import com.google.common.io.Files;
 
 import de.uni_postdam.hpi.cauchy.Cauchy;
+import de.uni_postdam.hpi.jerasure.Decoder;
 import de.uni_postdam.hpi.matrix.BitMatrix;
 import de.uni_postdam.hpi.matrix.Matrix;
 import de.uni_postdam.hpi.matrix.Schedule;
 import de.uni_postdam.hpi.matrix.Schedule.OPERATION;
+
+
+import static de.uni_postdam.hpi.utils.FileUtils.*;
 
 public class Encoder {
 	int k, m, w;
@@ -20,7 +26,9 @@ public class Encoder {
 	Schedule[] schedules = null;
 
 	private boolean fileEndReached;
-
+	
+	byte[][] data = null;
+	int numReads = 0;
 
 	public Encoder(int k, int m, int w) {
 		this.k = k;
@@ -38,48 +46,38 @@ public class Encoder {
 		f = f.getAbsoluteFile();
 		FileInputStream fis = new FileInputStream(f);
 
-		FileOutputStream[] dataParts = this.getParts(f, k, "k");
-		FileOutputStream[] codingParts = this.getParts(f, m, "m");
+		this.numReads = (int)(f.length() / k / w + 1);
+		
+		FileOutputStream[] dataParts = createParts(f.getAbsolutePath(), "k", k);
+		FileOutputStream[] codingParts = createParts(f.getAbsolutePath(), "m", m);
 
-		while(!encodeAndWrite(this.read(fis), codingParts, dataParts));
+		while(!encodeAndWrite(fis, codingParts, dataParts));
 
-		this.closeParts(dataParts);
-		this.closeParts(codingParts);
+		close(dataParts);
+		close(codingParts);
 		
 	}
 
-	private void closeParts(FileOutputStream[] parts) throws IOException {
-		for(FileOutputStream part: parts) part.close();
-	}
 
-
-	private FileOutputStream[] getParts(File f, int numParts, String suffix) throws FileNotFoundException {
-		FileOutputStream[] res = new FileOutputStream[numParts];
-		for(int i = 0; i < numParts; i++){
-			res[i] = new FileOutputStream(this.getPartName(f, i+1, suffix));
-		}
+	private boolean encodeAndWrite(FileInputStream fis, FileOutputStream[] codingParts, FileOutputStream[] dataParts) throws IOException {
+		int bytesRead = this.read(fis);
+		boolean res = write(codingParts, dataParts, bytesRead);
 		return res;
 	}
 
-	private String getPartName(File f, int num, String suffix){
-		String filePath = f.getParentFile().getAbsolutePath();
-		String fileName = f.getName();
-		return String.format("%s/%s_%s%02d", filePath, fileName, suffix, num);
+
+	private boolean write(FileOutputStream[] codingParts, FileOutputStream[] dataParts, int bytesRead) throws IOException {
+
+//		System.out.println(String.format("Run %d: %d/%d", ++run, remains, length));
 		
-	}
+		if(numReads > 0){
+			for(int i = 0; i < k; i++)
+				dataParts[i].write(data[i]);
 	
-	private boolean encodeAndWrite(byte[][] data, FileOutputStream[] codingParts, FileOutputStream[] dataParts) throws IOException {
-		
-		return write(data, encode(data), codingParts, dataParts);
-	}
-
-
-	private boolean write(byte[][] data, byte[][] coding, FileOutputStream[] codingParts, FileOutputStream[] dataParts) throws IOException {
-		for(int i = 0; i < k; i++)
-			dataParts[i].write(data[i]);
-
-		for(int i = 0; i < m; i++)
-			codingParts[i].write(coding[i]);
+			for(int i = 0; i < m; i++)
+				codingParts[i].write(encode(data)[i]);
+			numReads--;
+		}
 		
 		return fileEndReached;
 	}
@@ -98,26 +96,39 @@ public class Encoder {
 	}
 
 
-	private byte[][] read(FileInputStream fis) throws IOException {
-		byte[][] data = new byte[k][w];
+	private int read(FileInputStream fis) throws IOException {
+		data = new byte[k][w];
+		int read = 0;
 		for(int id = 0; id < k && !this.fileEndReached; id++){
-			this.fileEndReached = (fis.read(data[id]) == -1);
+			read += fis.read(data[id]);
+			this.fileEndReached = (read == -1);
 		}
-		return data;
+		return read;
 	}
 	
 	
 	
 	
-	public static void main(String[] args) {
-		Encoder enc = new Encoder(2, 1, 3);
+	public static void main(String[] args) throws NoSuchAlgorithmException, IOException {
+		int k = 2, m = 1, w = 3;
+		File f = new File("lorem");
+		File orig = new File("orig");
+		long size = 256 * BYTE;
+		Encoder enc = new Encoder(k, m, w);
+		createRandomContentFile(f, size);
+		enc.encode(f);
 		
-		try {
-			enc.encode(new File("lorem"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Files.copy(f, orig);
+		
+		Decoder dec = new Decoder(f, k, m, w);
+		dec.decode(size);
+		
+		if(!getMD5Hash(orig).equals(getMD5Hash(f))){
+			System.err.println("en/decoding does not work!");
+		} else {
+			System.out.println("Done!");
 		}
+			
 		
 		System.out.println("ready!");
 	}
