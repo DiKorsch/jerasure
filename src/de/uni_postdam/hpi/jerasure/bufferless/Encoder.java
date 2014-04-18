@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import com.google.common.io.Files;
 
 import de.uni_postdam.hpi.cauchy.Cauchy;
-import de.uni_postdam.hpi.jerasure.Decoder;
+import de.uni_postdam.hpi.jerasure.bufferless.Decoder;
 import de.uni_postdam.hpi.matrix.BitMatrix;
 import de.uni_postdam.hpi.matrix.Matrix;
 import de.uni_postdam.hpi.matrix.Schedule;
@@ -27,7 +27,7 @@ public class Encoder {
 
 	private boolean fileEndReached;
 	
-	byte[][] data = null;
+	byte[][] data;
 	int numReads = 0;
 
 	public Encoder(int k, int m, int w) {
@@ -38,6 +38,9 @@ public class Encoder {
 		this.matrix = Cauchy.good_general_coding_matrix(k, m, w);
 		this.bitMatrix = new BitMatrix(matrix, w);
 		this.schedules = bitMatrix.toSchedules(k, w);
+		
+
+		data = new byte[k][w];
 	}
 	
 	
@@ -97,11 +100,11 @@ public class Encoder {
 
 
 	private int read(FileInputStream fis) throws IOException {
-		data = new byte[k][w];
-		int read = 0;
+		int read = 0, currRead = 0;
 		for(int id = 0; id < k && !this.fileEndReached; id++){
-			read += fis.read(data[id]);
-			this.fileEndReached = (read == -1);
+			currRead = fis.read(data[id]);
+			this.fileEndReached = (currRead == -1);
+			if(!this.fileEndReached) read += currRead;
 		}
 		return read;
 	}
@@ -113,7 +116,7 @@ public class Encoder {
 		int k = 2, m = 1, w = 3;
 		File f = new File("lorem");
 		File orig = new File("orig");
-		long size = 256 * BYTE;
+		long size = 10 * MB;
 		Encoder enc = new Encoder(k, m, w);
 		createRandomContentFile(f, size);
 		enc.encode(f);
