@@ -60,7 +60,7 @@ public class BufferlessDecoderTest {
 	
 	
 	@Test
-	public void test_validator() throws NoSuchAlgorithmException, IOException {
+	public void test_validator() throws NoSuchAlgorithmException, IOException, InterruptedException {
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
 
@@ -83,7 +83,7 @@ public class BufferlessDecoderTest {
 	
 	
 	@Test
-	public void test_decoding_with_all_k_parts() throws NoSuchAlgorithmException, IOException{
+	public void test_decoding_with_all_k_parts() throws NoSuchAlgorithmException, IOException, InterruptedException{
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
 		
@@ -103,7 +103,7 @@ public class BufferlessDecoderTest {
 	}
 
 	@Test 
-	public void test_decoding_with_m_of_k_parts_missing() throws NoSuchAlgorithmException, IOException{
+	public void test_decoding_with_m_of_k_parts_missing() throws NoSuchAlgorithmException, IOException, InterruptedException{
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
@@ -124,7 +124,7 @@ public class BufferlessDecoderTest {
 	}
 
 	@Test
-	public void test_decode_256_bytes(){
+	public void test_decode_256_bytes() throws InterruptedException, IOException{
 
 		int k,m,w;
 		File original = null;
@@ -132,43 +132,39 @@ public class BufferlessDecoderTest {
 		File[] k_files = null;
 		File[] m_files = null;
 		
-		try {
-			k = 2; m = 1; w = 7;
-			byte[] content = new byte[256];
-			for(int i = 0; i < 256; i++){
-				content[i] = (byte) i;
-			}
-			original = createFile("original", content);
-			long size = original.length();
-			new Encoder(k, m, w).encode(original);
-
-			k_files = collectFiles(original.getAbsolutePath(), "k", k);
-			m_files = collectFiles(original.getAbsolutePath(), "m", m);
-			
-			for(File f: k_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-			
-			for(File f: m_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-
-			deleteSomeFiles(k_files, m);
-			assertTrue(original.delete());
-			assertFalse(original.exists());
-			new Decoder(original, k, m, w).decode(size);
-			assertTrue(original.exists());
-
-			assertTrue(checkFileContent(original, content));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		k = 2; m = 1; w = 7;
+		byte[] content = new byte[256];
+		for(int i = 0; i < 256; i++){
+			content[i] = (byte) i;
 		}
+		original = createFile("original", content);
+		long size = original.length();
+		new Encoder(k, m, w).encode(original);
+
+		k_files = collectFiles(original.getAbsolutePath(), "k", k);
+		m_files = collectFiles(original.getAbsolutePath(), "m", m);
+		
+		for(File f: k_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+		
+		for(File f: m_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+
+		deleteSomeFiles(k_files, m);
+		assertTrue(original.delete());
+		assertFalse(original.exists());
+		new Decoder(original, k, m, w).decode(size);
+		assertTrue(original.exists());
+
+		assertTrue(checkFileContent(original, content));
+			
 	}
 	
 
 	@Test
-	public void test_decode_big_file(){
+	public void test_decode_big_file() throws IOException, InterruptedException{
 
 		int k,m,w;
 		File original = null;
@@ -176,43 +172,39 @@ public class BufferlessDecoderTest {
 		File[] k_files = null;
 		File[] m_files = null;
 		
-		try {
-			long numBytes = 16 * MB;
-			k = 2; m = 1; w = 7;
-			byte[] content = new byte[(int) numBytes];
-			for(int i = 0; i < numBytes; i++){
-				content[i] = (byte) i;
-			}
-			original = createFile("original", content);
-			long size = original.length();
-			new Encoder(k, m, w).encode(original);
-
-			k_files = collectFiles(original.getAbsolutePath(), "k", k);
-			m_files = collectFiles(original.getAbsolutePath(), "m", m);
-			
-			for(File f: k_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-			
-			for(File f: m_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-
-			deleteSomeFiles(k_files, m);
-			assertTrue(original.delete());
-			assertFalse(original.exists());
-			new Decoder(original, k, m, w).decode(size);
-			assertTrue(original.exists());
-
-			assertTrue(checkFileContent(original, content));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		long numBytes = 16 * MB;
+		k = 2; m = 1; w = 7;
+		byte[] content = new byte[(int) numBytes];
+		for(int i = 0; i < numBytes; i++){
+			content[i] = (byte) i;
 		}
+		original = createFile("original", content);
+		long size = original.length();
+		new Encoder(k, m, w).encode(original);
+
+		k_files = collectFiles(original.getAbsolutePath(), "k", k);
+		m_files = collectFiles(original.getAbsolutePath(), "m", m);
+		
+		for(File f: k_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+		
+		for(File f: m_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+
+		deleteSomeFiles(k_files, m);
+		assertTrue(original.delete());
+		assertFalse(original.exists());
+		new Decoder(original, k, m, w).decode(size);
+		assertTrue(original.exists());
+
+		assertTrue(checkFileContent(original, content));
+			
 	}
 	
 	@Test
-	public void test_decode_64_bytes() throws NoSuchAlgorithmException{
+	public void test_decode_64_bytes() throws NoSuchAlgorithmException, IOException, InterruptedException{
 
 		int k,m,w;
 		File original = null;
@@ -220,55 +212,51 @@ public class BufferlessDecoderTest {
 		File[] k_files = null;
 		File[] m_files = null;
 		
-		try {
-			k = 3; m = 2; w = 6;
-			int len = 64;
-			byte[] content = new byte[len];
-			for(int i = 0; i < len; i++){
-				content[i] = (byte) i;
-			}
-			original = createFile("original", content);
-			long size = original.length();
-			new Encoder(k, m, w).encode(original);
-
-			k_files = collectFiles(original.getAbsolutePath(), "k", k);
-			m_files = collectFiles(original.getAbsolutePath(), "m", m);
-			
-			
-			for(File f: k_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-			
-			for(File f: m_files){
-				assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
-			}
-
-			String[] k_hashes = getHashes(k_files);
-			String[] m_hashes = getHashes(m_files);
-
-			deleteSomeFiles(k_files, m);
-			assertTrue(original.delete());
-			assertFalse(original.exists());
-			new Decoder(original, k, m, w).decode(size);
-			assertTrue(original.exists());
-			
-			for(int i = 0; i < k; i++){
-				assertEquals(k_hashes[i], FileUtils.getMD5Hash(k_files[i]));
-			}
-			
-			for(int i = 0; i < m; i++){
-				assertEquals(m_hashes[i], FileUtils.getMD5Hash(m_files[i]));
-			}
-			
-			assertTrue(checkFileContent(original, content));
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		k = 3; m = 2; w = 6;
+		int len = 64;
+		byte[] content = new byte[len];
+		for(int i = 0; i < len; i++){
+			content[i] = (byte) i;
 		}
+		original = createFile("original", content);
+		long size = original.length();
+		new Encoder(k, m, w).encode(original);
+
+		k_files = collectFiles(original.getAbsolutePath(), "k", k);
+		m_files = collectFiles(original.getAbsolutePath(), "m", m);
+		
+		
+		for(File f: k_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+		
+		for(File f: m_files){
+			assertTrue(String.format("%s does not exist!", f.getAbsolutePath()), f.exists());
+		}
+
+		String[] k_hashes = getHashes(k_files);
+		String[] m_hashes = getHashes(m_files);
+
+		deleteSomeFiles(k_files, m);
+		assertTrue(original.delete());
+		assertFalse(original.exists());
+		new Decoder(original, k, m, w).decode(size);
+		assertTrue(original.exists());
+		
+		for(int i = 0; i < k; i++){
+			assertEquals(k_hashes[i], FileUtils.getMD5Hash(k_files[i]));
+		}
+		
+		for(int i = 0; i < m; i++){
+			assertEquals(m_hashes[i], FileUtils.getMD5Hash(m_files[i]));
+		}
+		
+		assertTrue(checkFileContent(original, content));
+			
 	}
 	
 	@Test
-	public void test_decoding_with_k_and_m_missing() throws NoSuchAlgorithmException, IOException{
+	public void test_decoding_with_k_and_m_missing() throws NoSuchAlgorithmException, IOException, InterruptedException{
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
@@ -289,7 +277,7 @@ public class BufferlessDecoderTest {
 	}
 	
 	@Test
-	public void test_decoding_restores_m_of_k_missing_parts() throws NoSuchAlgorithmException, IOException{
+	public void test_decoding_restores_m_of_k_missing_parts() throws NoSuchAlgorithmException, IOException, InterruptedException{
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
@@ -308,7 +296,7 @@ public class BufferlessDecoderTest {
 	}
 	
 	@Test
-	public void test_generate_decoding_bitmatrix_k_and_m_missing() throws IOException{
+	public void test_generate_decoding_bitmatrix_k_and_m_missing() throws IOException, InterruptedException{
 				
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
@@ -330,7 +318,7 @@ public class BufferlessDecoderTest {
 	}
 	
 	@Test
-	public void test_generate_decoding_bitmatrix_m_of_k_parts_missing() throws NoSuchAlgorithmException, IOException{
+	public void test_generate_decoding_bitmatrix_m_of_k_parts_missing() throws NoSuchAlgorithmException, IOException, InterruptedException{
 		
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
@@ -352,7 +340,7 @@ public class BufferlessDecoderTest {
 	}
 	
 	@Test
-	public void test_generate_decoding_bitmatrix_m_parts_missing() throws IOException{
+	public void test_generate_decoding_bitmatrix_m_parts_missing() throws IOException, InterruptedException{
 		k = 3; m = 2; w = 3;
 		File f = getFile("someFile");
 		Decoder dec = new Decoder(f, k, m, w);
@@ -374,20 +362,20 @@ public class BufferlessDecoderTest {
 	
 	
 	// Scenarios
-	private void all_parts_exist(File f) throws IOException {
+	private void all_parts_exist(File f) throws IOException, InterruptedException {
 		cleanAndCreateFile(f);
 		Encoder enc = new Encoder(k, m, w);
 		enc.encode(f);
 	}
 
-	private void m_parts_missing(File f) throws IOException {
+	private void m_parts_missing(File f) throws IOException, InterruptedException {
 		cleanAndCreateFile(f);
 		Encoder enc = new Encoder(k, m, w);
 		enc.encode(f);
 		deleteFiles(collectFiles(f.getAbsolutePath(), "m", m));
 	}
 	
-	private String[] m_of_k_parts_missing(File f) throws NoSuchAlgorithmException, IOException{
+	private String[] m_of_k_parts_missing(File f) throws NoSuchAlgorithmException, IOException, InterruptedException{
 		cleanAndCreateFile(f);
 		Encoder enc = new Encoder(k, m, w);
 		enc.encode(f);
@@ -399,13 +387,13 @@ public class BufferlessDecoderTest {
 		return hashes;
 	}
 
-	private void to_many_parts_missing(File f) throws IOException {
+	private void to_many_parts_missing(File f) throws IOException, InterruptedException {
 		m_parts_missing(f);
 		assertTrue(collectFiles(f.getAbsolutePath(), "k", k)[0].delete());
 		
 	}
 	
-	private void k_and_m_missing(File f, int k_missing, int m_missing) throws IOException{
+	private void k_and_m_missing(File f, int k_missing, int m_missing) throws IOException, InterruptedException{
 		cleanAndCreateFile(f);
 		Encoder enc = new Encoder(k, m, w);
 		enc.encode(f);

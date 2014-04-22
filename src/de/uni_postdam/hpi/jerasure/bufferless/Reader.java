@@ -79,7 +79,7 @@ public class Reader {
 	
 	
 	public boolean isFull() {
-		return this.buffer.size() >= 5;
+		return this.buffer.size() >= 500;
 	}
 
 	public void threadIsReady() {

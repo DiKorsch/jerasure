@@ -25,7 +25,6 @@ public class Encoder {
 	BitMatrix bitMatrix = null;
 	Schedule[] schedules = null;
 
-	byte[][] data;
 	int numReads = 0;
 
 	public Encoder(int k, int m, int w) {
@@ -39,36 +38,44 @@ public class Encoder {
 	}
 	
 	
-	public void encode(File f) throws IOException {
+	public void encode(File f) throws IOException, InterruptedException {
 
 		f = f.getAbsoluteFile();
 		FileInputStream fis = new FileInputStream(f);
 
 		this.numReads = (int)(f.length() / k / w + 1);
 		
-		FileOutputStream[] dataParts = createParts(f.getAbsolutePath(), "k", k);
-		FileOutputStream[] codingParts = createParts(f.getAbsolutePath(), "m", m);
+		long t1 = 0, read = 0, encoding = 0, write = 0;
 
-		Reader reader = new Reader(k,m,w, fis);
+		Reader reader = new Reader(k, m, w, fis);
+		Writer writer = new Writer(k, m, w, f);
+		byte[][] data;
 		while(reader.next()){
+			t1 = System.currentTimeMillis();
 			data = reader.get();
-
+			read += System.currentTimeMillis() - t1;
+			
+			
+			t1 = System.currentTimeMillis();
 			byte[][] coding = encode(data);
+			encoding += System.currentTimeMillis() - t1;
 			
 			if(numReads-- <= 0){ break; }
 
-			for(int i = 0; i < k; i++)
-				dataParts[i].write(data[i]);
-	
-			for(int i = 0; i < m; i++)
-				codingParts[i].write(coding[i]);
-				
+			t1 = System.currentTimeMillis();
+			writer.write(data, coding);
+			
+			write += System.currentTimeMillis() - t1;
 		}
 		
-		close(dataParts);
-		close(codingParts);
+		t1 = System.currentTimeMillis();
+		writer.join();
+		write += System.currentTimeMillis() - t1;
 		
 		fis.close();
+		
+		
+		System.out.println(String.format("%d\t%d\t%d\t%d", f.length(), read, encoding, write));
 		
 	}
 
@@ -86,25 +93,26 @@ public class Encoder {
 	}
 
 
-	public static void main(String[] args) throws NoSuchAlgorithmException, IOException {
+	public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InterruptedException {
 		int k = 2, m = 1, w = 3;
 		File f = new File("lorem");
-		File orig = new File("orig");
-		long size = 10 * MB;
 		Encoder enc = new Encoder(k, m, w);
-		createRandomContentFile(f, size);
-		enc.encode(f);
 		
-		Files.copy(f, orig);
-		
-		Decoder dec = new Decoder(f, k, m, w);
-		dec.decode(size);
-		
-		if(!getMD5Hash(orig).equals(getMD5Hash(f))){
-			System.err.println("en/decoding does not work!");
-		} else {
-			System.out.println("Done!");
+		for(int i = 1; i < 11; i++){
+			createRandomContentFile(f, i * 1 * MB);
+			enc.encode(f);
 		}
+		
+//		Files.copy(f, orig);
+		
+//		Decoder dec = new Decoder(f, k, m, w);
+//		dec.decode(size);
+		
+//		if(!getMD5Hash(orig).equals(getMD5Hash(f))){
+//			System.err.println("en/decoding does not work!");
+//		} else {
+//			System.out.println("Done!");
+//		}
 			
 		
 		System.out.println("ready!");
