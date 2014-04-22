@@ -25,8 +25,6 @@ public class Encoder {
 	BitMatrix bitMatrix = null;
 	Schedule[] schedules = null;
 
-	private boolean fileEndReached;
-	
 	byte[][] data;
 	int numReads = 0;
 
@@ -38,9 +36,6 @@ public class Encoder {
 		this.matrix = Cauchy.good_general_coding_matrix(k, m, w);
 		this.bitMatrix = new BitMatrix(matrix, w);
 		this.schedules = bitMatrix.toSchedules(k, w);
-		
-
-		data = new byte[k][w];
 	}
 	
 	
@@ -54,37 +49,27 @@ public class Encoder {
 		FileOutputStream[] dataParts = createParts(f.getAbsolutePath(), "k", k);
 		FileOutputStream[] codingParts = createParts(f.getAbsolutePath(), "m", m);
 
-		while(!encodeAndWrite(fis, codingParts, dataParts));
+		Reader reader = new Reader(k,m,w, fis);
+		while(reader.next()){
+			data = reader.get();
 
+			byte[][] coding = encode(data);
+			
+			if(numReads-- <= 0){ break; }
+
+			for(int i = 0; i < k; i++)
+				dataParts[i].write(data[i]);
+	
+			for(int i = 0; i < m; i++)
+				codingParts[i].write(coding[i]);
+				
+		}
+		
 		close(dataParts);
 		close(codingParts);
 		
 		fis.close();
 		
-	}
-
-
-	private boolean encodeAndWrite(FileInputStream fis, FileOutputStream[] codingParts, FileOutputStream[] dataParts) throws IOException {
-		int bytesRead = this.read(fis);
-		boolean res = write(codingParts, dataParts, bytesRead);
-		return res;
-	}
-
-
-	private boolean write(FileOutputStream[] codingParts, FileOutputStream[] dataParts, int bytesRead) throws IOException {
-
-//		System.out.println(String.format("Run %d: %d/%d", ++run, remains, length));
-		
-		if(numReads > 0){
-			for(int i = 0; i < k; i++)
-				dataParts[i].write(data[i]);
-	
-			for(int i = 0; i < m; i++)
-				codingParts[i].write(encode(data)[i]);
-			numReads--;
-		}
-		
-		return fileEndReached;
 	}
 
 
@@ -101,19 +86,6 @@ public class Encoder {
 	}
 
 
-	private int read(FileInputStream fis) throws IOException {
-		int read = 0, currRead = 0;
-		for(int id = 0; id < k && !this.fileEndReached; id++){
-			currRead = fis.read(data[id]);
-			this.fileEndReached = (currRead == -1);
-			if(!this.fileEndReached) read += currRead;
-		}
-		return read;
-	}
-	
-	
-	
-	
 	public static void main(String[] args) throws NoSuchAlgorithmException, IOException {
 		int k = 2, m = 1, w = 3;
 		File f = new File("lorem");
