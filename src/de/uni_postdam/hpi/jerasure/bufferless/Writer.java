@@ -7,64 +7,25 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 
 public class Writer {
 	int k = 0, m = 0, w = 0;
 	File original = null;
-	private WriterThread thread;
 
 
-	Deque<byte[][]> dataBuffer = new ArrayDeque<byte[][]>();
-	Deque<byte[][]> codingBuffer = new ArrayDeque<byte[][]>();
+	Deque<byte[][]> dataBuffer2 = new ArrayDeque<byte[][]>();
+	Deque<byte[][]> codingBuffer2 = new ArrayDeque<byte[][]>();
+
+	byte[][] dataBuffer = null;
+	byte[][] codingBuffer = null;
 	
+	private int dataBufferPos = 0, codingBufferPos = 0;
 	
-	private class WriterThread extends Thread{
-		
-		FileOutputStream[] dataParts = null;
-		FileOutputStream[] codingParts = null;
-
-		Writer parent = null;
-		boolean work = true;
-		
-		public WriterThread(File original, Writer parent) {
-
-			this.parent = parent;
-			this.dataParts = createParts(original.getAbsolutePath(), "k", k);
-			this.codingParts = createParts(original.getAbsolutePath(), "m", m);
-		}
-		
-		@Override
-		public void run() {
-			
-			while(this.work || this.parent.hasData()){
-				
-				try {
-					byte[][][] dataAndCoding = this.parent.get();
-					int i = 0;
-					for (byte[] dataPart: dataAndCoding[0]) {
-						this.dataParts[i++].write(dataPart);
-					}
-					
-					i = 0;
-					for (byte[] codingPart: dataAndCoding[1]) {
-						this.codingParts[i++].write(codingPart);
-					}
-					
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}
-	
-		public void closeOutputs() {
-			close(dataParts);
-			close(codingParts);
-		}
-	}
+	final private int BUFFERSIZE = 1000;
+	FileOutputStream[] dataParts = null;
+	FileOutputStream[] codingParts = null;
 	
 	public Writer(int k, int m, int w, File original) {
 		this.k = k;
@@ -72,66 +33,69 @@ public class Writer {
 		this.w = w;
 		
 		this.original = original;
-		
-		this.thread = new WriterThread(original, this);
-		
-		this.thread.start();
 
+		this.dataBuffer = new byte[k][w * this.BUFFERSIZE];
+		this.codingBuffer = new byte[m][w * this.BUFFERSIZE];
+		
+		this.dataParts = createParts(original.getAbsolutePath(), "k", k);
+		this.codingParts = createParts(original.getAbsolutePath(), "m", m);
+	
 	}
 	
-	protected void finalize() throws Throwable {
-		this.thread.join();
-	};
+	public void write(byte[][] data, byte[][] coding) throws InterruptedException, IOException {
 
-	public void write(byte[][] data, byte[][] coding) throws InterruptedException {
-
-		while(this.isFull()){
-			synchronized (this) {
-				this.wait();
+		for(int i = 0; i < k; i++){
+			for(int j = 0; j < w; j++){
+				this.dataBuffer[i][dataBufferPos + j] = data[i][j];
 			}
 		}
 		
-		synchronized (this) {
-			dataBuffer.addFirst(data);
-			codingBuffer.addFirst(coding);
-			this.notify();
+		for(int i = 0; i < m; i++){
+			for(int j = 0; j < w; j++){
+				this.codingBuffer[i][codingBufferPos + j] = coding[i][j];
+			}
 		}
+
+		dataBufferPos += w;
+		codingBufferPos += w;
+		
+		if(!this.isFull()) return;
+		
+		this.writeOut();
+
 	}
 	
+	private void writeOut() throws IOException {
+
+		for(int i = 0; i < k; i++){
+			this.dataParts[i].write(this.dataBuffer[i]);
+		}
+		
+		for(int i = 0; i < m; i++){
+			this.codingParts[i].write(this.codingBuffer[i]);
+		}
+
+		dataBufferPos = 0;
+		codingBufferPos = 0;
+	}
+
 	private boolean isFull() {
-		return this.dataBuffer.size() >= 250;
+		return this.dataBufferPos >= this.BUFFERSIZE;
 	}
 
-	byte[][][] get() throws InterruptedException{
-		while(dataBuffer.isEmpty()) {
-			synchronized (this) {
-				this.wait();
-			}
-		}
 
-		synchronized (this) {
-			byte[][] res1 = dataBuffer.pollLast();
-			byte[][] res2 = codingBuffer.pollLast();
-			this.notify();
-			return new byte[][][]{res1, res2};
+	
+	public void join() throws IOException {
+		for(int i = 0; i < k; i++){
+			this.dataParts[i].write(Arrays.copyOf(this.dataBuffer[i], dataBufferPos));
 		}
 		
-	}
-	
-
-	
-	public boolean hasData(){
-		return !(codingBuffer.isEmpty() && dataBuffer.isEmpty());
-	}
-	
-	public void join() {
-		try {
-			this.thread.work = false;
-			this.thread.join();
-			this.thread.closeOutputs();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		for(int i = 0; i < m; i++){
+			this.codingParts[i].write(Arrays.copyOf(this.codingBuffer[i], codingBufferPos));
 		}
+
+		close(dataParts);
+		close(codingParts);
 	}
 
 	
