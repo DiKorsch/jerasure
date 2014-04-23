@@ -2,14 +2,10 @@ package de.uni_postdam.hpi.jerasure.bufferless;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import com.google.common.io.Files;
-
 import de.uni_postdam.hpi.cauchy.Cauchy;
-import de.uni_postdam.hpi.jerasure.bufferless.Decoder;
 import de.uni_postdam.hpi.matrix.BitMatrix;
 import de.uni_postdam.hpi.matrix.Matrix;
 import de.uni_postdam.hpi.matrix.Schedule;
@@ -50,7 +46,10 @@ public class Encoder {
 		Reader reader = new Reader(k, m, w, fis);
 		Writer writer = new Writer(k, m, w, f);
 		byte[][] data;
-		while(reader.next()){
+		while(true/*reader.next()*/){
+			if(numReads-- <= 0){ 
+				break; 
+			}
 			t1 = System.currentTimeMillis();
 			data = reader.get();
 			read += System.currentTimeMillis() - t1;
@@ -60,7 +59,6 @@ public class Encoder {
 			byte[][] coding = encode(data);
 			encoding += System.currentTimeMillis() - t1;
 			
-			if(numReads-- <= 0){ break; }
 
 			t1 = System.currentTimeMillis();
 			writer.write(data, coding);
@@ -75,7 +73,7 @@ public class Encoder {
 		fis.close();
 		
 		
-		System.out.println(String.format("%d\t%d\t%d\t%d", f.length(), read, encoding, write));
+//		System.out.println(String.format("%d\t%d\t%d\t%d", f.length(), read, encoding, write));
 		
 	}
 
@@ -100,20 +98,11 @@ public class Encoder {
 		
 		for(int i = 1; i < 11; i++){
 			createRandomContentFile(f, i * 1 * MB);
+			long t1 = System.currentTimeMillis();
 			enc.encode(f);
+			long t2 = System.currentTimeMillis();
+			System.out.println(String.format("%8d\t%d", i * 1 * MB, t2 - t1));
 		}
-		
-//		Files.copy(f, orig);
-		
-//		Decoder dec = new Decoder(f, k, m, w);
-//		dec.decode(size);
-		
-//		if(!getMD5Hash(orig).equals(getMD5Hash(f))){
-//			System.err.println("en/decoding does not work!");
-//		} else {
-//			System.out.println("Done!");
-//		}
-			
 		
 		System.out.println("ready!");
 	}

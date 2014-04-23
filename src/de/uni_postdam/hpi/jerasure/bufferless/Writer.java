@@ -80,7 +80,7 @@ public class Writer {
 	}
 
 	private boolean isFull() {
-		return this.dataBufferPos >= this.BUFFERSIZE;
+		return this.dataBufferPos >= this.BUFFERSIZE * w;
 	}
 
 

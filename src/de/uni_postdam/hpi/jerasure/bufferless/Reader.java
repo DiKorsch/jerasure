@@ -9,77 +9,31 @@ public class Reader {
 
 	int k,m,w;
 	
-	ReaderThread thread = null;
+//	ReaderThread thread = null;
 
-	private Deque<byte[][]> buffer = new ArrayDeque<byte[][]>();
+	private Deque<byte[][]> buffer_old = new ArrayDeque<byte[][]>();
+	private byte[] buffer = null;
+	private final int BUFFERSIZE = 1000;
+	private int bufferPos = 0;
 	public boolean ready = false;
+	
+	private FileInputStream fis = null;
+
+	private boolean eof_reached;
 
 	public Reader(int k, int m, int w, FileInputStream fis) {
 		this.k = k;
 		this.m = m;
 		this.w = w;
 		
-		this.thread = new ReaderThread(fis, this);
-		this.thread.start();
+		this.fis = fis;
 		this.ready = false;
 	}
 	
-	@Override
-	protected void finalize() throws Throwable {
-		this.thread.work = false;
-		this.thread.join(10 * 1000);
-		super.finalize();
-	
-	}
 	
 	
-	class ReaderThread extends Thread {
-		
-		private FileInputStream fis;
-		private Reader parent;
-		private boolean fileEndReached;
-//		private int bytesRead = 0;
-		boolean work = true;
-		
-		public FileInputStream getStream(){
-			return this.fis;
-		}
-		
-		public ReaderThread(FileInputStream fis, Reader parent) {
-			this.fis = fis;
-			this.parent = parent;
-		}
-		
-		@Override
-		public void run() {
-			try {
-				while(this.work && !this.fileEndReached){
-					this.parent.add(this.read());
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			if(this.fileEndReached){
-				this.parent.threadIsReady();
-			}
-		}
-
-		
-		private byte[][] read() throws IOException{
-			int currRead = 0;
-			byte[][] result = new byte[this.parent.k][this.parent.w];
-			for(int id = 0; id < k && !this.fileEndReached; id++){
-				currRead = fis.read(result[id]);
-				this.fileEndReached = (currRead == -1);
-			}
-			return result;
-		}
-	}
-	
-	
-	public boolean isFull() {
-		return this.buffer.size() >= 500;
+	public boolean isFullyRead() {
+		return bufferPos >= BUFFERSIZE;
 	}
 
 	public void threadIsReady() {
@@ -87,12 +41,12 @@ public class Reader {
 	}
 	
 	public boolean next(){
-		return !(ready && buffer.isEmpty());
+		return !(this.eof_reached && isFullyRead());
 	}
 
 	synchronized public void add(byte[][] data){
 		
-		if(this.isFull()){
+		if(this.isFullyRead()){
 			try {
 				this.wait();
 			} catch (InterruptedException e) {
@@ -100,22 +54,30 @@ public class Reader {
 			}
 		}
 		
-		buffer.addFirst(data);
+		buffer_old.addFirst(data);
 		this.notify();
 	}
 	
-	synchronized public byte[][] get(){
+	public byte[][] get() throws IOException{
 		
-		if(buffer.isEmpty()) {
-			try {
-				this.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		this.read();
+		byte[][] res = new byte[k][w];
+		for(int i = 0; i < k; i++)
+			for(int j = 0; j < w; j++)
+				res[i][j] = buffer[bufferPos * k * w + i * w + j];
 		
-		byte[][] res = buffer.pollLast();
-		this.notify();
+		bufferPos += 1;
 		return res;
+	}
+
+	private void read() throws IOException {
+		if(this.buffer == null) {
+			this.buffer = new byte[k * w * BUFFERSIZE];
+		} else if(bufferPos < BUFFERSIZE) return;
+		
+		
+//		System.out.println("Reading " + BUFFERSIZE + " bytes");
+		this.eof_reached = this.fis.read(buffer) == -1;
+		bufferPos = 0;
 	}
 }

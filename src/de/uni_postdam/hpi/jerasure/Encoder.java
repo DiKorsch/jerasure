@@ -1,10 +1,14 @@
 package de.uni_postdam.hpi.jerasure;
 
+import static de.uni_postdam.hpi.utils.FileUtils.MB;
+import static de.uni_postdam.hpi.utils.FileUtils.createRandomContentFile;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import de.uni_postdam.hpi.cauchy.Cauchy;
 import de.uni_postdam.hpi.matrix.*;
@@ -174,6 +178,22 @@ public class Encoder {
 			}
 		}
 		
+	}
+	
+	public static void main(String[] args) throws NoSuchAlgorithmException, IOException, InterruptedException {
+		int k = 2, m = 1, w = 3;
+		File f = new File("lorem");
+		Encoder enc = new Encoder(k, m, w);
+		
+		for(int i = 1; i < 11; i++){
+			createRandomContentFile(f, i * 1 * MB);
+			long t1 = System.currentTimeMillis();
+			enc.encode(f);
+			long t2 = System.currentTimeMillis();
+			System.out.println(String.format("%8d\t%d", i * 1 * MB, t2 - t1));
+		}
+		
+		System.out.println("ready!");
 	}
 
 }
